@@ -1,0 +1,30 @@
+{
+  "values" : ["X", "Y", "Z"],
+  "free_vars" : [],
+  "atoms": [
+    {
+      "name" : "R",
+      "consistent" : false,
+      "content" : [0, 1, 0],
+      "key" : [true, false, false],
+      "fd" : [
+        {
+          "left" : [0],
+          "right" : 1
+        }
+      ]
+    },
+    {
+      "name" : "S",
+      "consistent" : false,
+      "content" : [1, 2],
+      "key" : [true, false],
+      "fd" : [
+        {
+          "left" : [1],
+          "right" : 2
+        }
+      ]
+    }
+  ]
+}

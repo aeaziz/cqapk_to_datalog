@@ -1,0 +1,6 @@
+R(X,Y) :- S(Y,X), T(X,X).
+R(a,Y) :- S(Y,a), T(a,a).
+S(Y,X) :- R(X,Y), Y=b.
+T(Y,X) :- R(X,Y), Y!=b.
+V(Y,X) :- R(X,Y), Y>b.
+W_8(Y,X) :- R(X,Y), Y<b.
