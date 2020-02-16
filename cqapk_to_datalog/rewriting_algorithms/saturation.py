@@ -1,5 +1,5 @@
-from pkcqa_to_datalog.data_structures import ConjunctiveQuery, FunctionalDependency, Atom, AtomValue, EqualityAtom, DatalogQuery
-from pkcqa_to_datalog.algorithms import generate_renaming, apply_renaming_to_atom_values, apply_renaming_to_atom
+from cqapk_to_datalog.data_structures import ConjunctiveQuery, FunctionalDependency, Atom, AtomValue, EqualityAtom, DatalogQuery
+from cqapk_to_datalog.algorithms import generate_renaming, apply_renaming_to_atom_values, apply_renaming_to_atom
 from typing import FrozenSet, List, Tuple
 
 """

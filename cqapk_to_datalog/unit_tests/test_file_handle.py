@@ -1,6 +1,6 @@
-from pkcqa_to_datalog.data_structures import AtomValue, Atom, EqualityAtom, CompareAtom, DatalogQuery, ConjunctiveQuery, \
+from cqapk_to_datalog.data_structures import AtomValue, Atom, EqualityAtom, CompareAtom, DatalogQuery, ConjunctiveQuery, \
     FunctionalDependency
-from pkcqa_to_datalog.file_handle import read_datalog_file, read_cq_file
+from cqapk_to_datalog.file_handle import read_datalog_file, read_cq_file
 
 
 def test_read_datalog():

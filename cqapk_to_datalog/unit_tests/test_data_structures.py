@@ -1,4 +1,4 @@
-from pkcqa_to_datalog.data_structures import AtomValue, FunctionalDependency, Atom
+from cqapk_to_datalog.data_structures import AtomValue, FunctionalDependency, Atom
 
 
 def test_fd():

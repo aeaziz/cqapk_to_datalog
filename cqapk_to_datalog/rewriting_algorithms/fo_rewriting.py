@@ -1,4 +1,4 @@
-from pkcqa_to_datalog.data_structures import Atom, ConjunctiveQuery, AtomValue, EqualityAtom, DatalogQuery
+from cqapk_to_datalog.data_structures import Atom, ConjunctiveQuery, AtomValue, EqualityAtom, DatalogQuery
 from typing import List, Set, Tuple, Dict
 from copy import copy
 

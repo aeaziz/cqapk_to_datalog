@@ -1,6 +1,6 @@
 import networkx as nx
 from typing import Set, List, FrozenSet, Dict
-from pkcqa_to_datalog.data_structures import AtomValue, Atom, FunctionalDependency, ConjunctiveQuery, SequentialProof
+from cqapk_to_datalog.data_structures import AtomValue, Atom, FunctionalDependency, ConjunctiveQuery, SequentialProof
 from copy import deepcopy
 
 

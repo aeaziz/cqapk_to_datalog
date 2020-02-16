@@ -1,6 +1,6 @@
-from pkcqa_to_datalog.data_structures import Atom, ConjunctiveQuery, AtomValue, DatalogQuery, EqualityAtom, CompareAtom, \
+from cqapk_to_datalog.data_structures import Atom, ConjunctiveQuery, AtomValue, DatalogQuery, EqualityAtom, CompareAtom, \
     FunctionalDependency
-from pkcqa_to_datalog.algorithms import generate_renaming, apply_renaming_to_atom, apply_renaming_to_atom_values
+from cqapk_to_datalog.algorithms import generate_renaming, apply_renaming_to_atom, apply_renaming_to_atom_values
 from typing import List, Tuple
 
 '''

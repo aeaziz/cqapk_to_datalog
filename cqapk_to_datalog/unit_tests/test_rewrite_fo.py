@@ -1,7 +1,7 @@
 import pytest
-from pkcqa_to_datalog.rewriting_algorithms.fo_rewriting import rewrite_fo
-from pkcqa_to_datalog.file_handle import read_cq_file, read_datalog_file
-from pkcqa_to_datalog.algorithms import gen_attack_graph
+from cqapk_to_datalog.rewriting_algorithms.fo_rewriting import rewrite_fo
+from cqapk_to_datalog.file_handle import read_cq_file, read_datalog_file
+from cqapk_to_datalog.algorithms import gen_attack_graph
 
 
 @pytest.fixture

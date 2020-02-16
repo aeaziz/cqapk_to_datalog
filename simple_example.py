@@ -1,5 +1,5 @@
-from pkcqa_to_datalog import rewrite
-from pkcqa_to_datalog.data_structures import AtomValue,Atom,ConjunctiveQuery,FunctionalDependency
+from cqapk_to_datalog import rewrite
+from cqapk_to_datalog.data_structures import AtomValue,Atom,ConjunctiveQuery,FunctionalDependency
 # Initialize variables
 x = AtomValue("X", True)
 y = AtomValue("Y", True)

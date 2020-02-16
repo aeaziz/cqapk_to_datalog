@@ -1,5 +1,5 @@
 import regex
-from pkcqa_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery, Atom, AtomValue, EqualityAtom, CompareAtom, \
+from cqapk_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery, Atom, AtomValue, EqualityAtom, CompareAtom, \
     FunctionalDependency
 from typing import List, Tuple
 import traceback

@@ -1,6 +1,6 @@
-from pkcqa_to_datalog.data_structures import AtomValue, Atom, ConjunctiveQuery, FunctionalDependency
-from pkcqa_to_datalog.algorithms import find_bad_internal_fd
-from pkcqa_to_datalog.rewriting_algorithms.saturation import saturate
+from cqapk_to_datalog.data_structures import AtomValue, Atom, ConjunctiveQuery, FunctionalDependency
+from cqapk_to_datalog.algorithms import find_bad_internal_fd
+from cqapk_to_datalog.rewriting_algorithms.saturation import saturate
 
 
 def test_saturation():

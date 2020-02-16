@@ -1,12 +1,12 @@
 import traceback
 import networkx as nx
 from typing import List
-from pkcqa_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery
-from pkcqa_to_datalog.algorithms import gen_attack_graph, gen_m_graph, all_cycles_weak, find_bad_internal_fd, initial_strong_components\
+from cqapk_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery
+from cqapk_to_datalog.algorithms import gen_attack_graph, gen_m_graph, all_cycles_weak, find_bad_internal_fd, initial_strong_components\
     , is_self_join_free
-from pkcqa_to_datalog.rewriting_algorithms.fo_rewriting import rewrite_fo
-from pkcqa_to_datalog.rewriting_algorithms.cycle_reduce import reduce_cycle
-from pkcqa_to_datalog.rewriting_algorithms.saturation import saturate
+from cqapk_to_datalog.rewriting_algorithms.fo_rewriting import rewrite_fo
+from cqapk_to_datalog.rewriting_algorithms.cycle_reduce import reduce_cycle
+from cqapk_to_datalog.rewriting_algorithms.saturation import saturate
 
 '''
 This module contains the main rewriting algorithm.

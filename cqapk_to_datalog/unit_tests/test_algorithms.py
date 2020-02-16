@@ -1,7 +1,7 @@
 import pytest
-from pkcqa_to_datalog.file_handle import read_cq_file
-from pkcqa_to_datalog.data_structures import AtomValue, FunctionalDependency, Atom, ConjunctiveQuery, SequentialProof
-from pkcqa_to_datalog.algorithms import transitive_closure, atom_plus, gen_attack_graph, all_cycles_weak, atom_attacks_variables, \
+from cqapk_to_datalog.file_handle import read_cq_file
+from cqapk_to_datalog.data_structures import AtomValue, FunctionalDependency, Atom, ConjunctiveQuery, SequentialProof
+from cqapk_to_datalog.algorithms import transitive_closure, atom_plus, gen_attack_graph, all_cycles_weak, atom_attacks_variables, \
     gen_m_graph, sequential_proofs, fd_is_internal, find_bad_internal_fd
 
 

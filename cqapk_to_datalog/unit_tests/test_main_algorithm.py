@@ -1,4 +1,4 @@
-from pkcqa_to_datalog.data_structures import AtomValue, Atom, ConjunctiveQuery, FunctionalDependency
+from cqapk_to_datalog.data_structures import AtomValue, Atom, ConjunctiveQuery, FunctionalDependency
 
 
 
