@@ -5,7 +5,7 @@ __cqapk_to_datalog__ (Consistent Query Answering under Primary Key constraints t
 The self-join free conjective query given as input is saturated if necessary. Then, according to the corresponding attack graph, either an exception is raised if CERTAINTY for the input query is not expressible in Datalog, or a Datalog program equivalent to CERTAINTY for the given input is created. This last case may need to reduce the problem to one rewritable in first-order logic.
 
 The output Datalog program and a database can then be given as input to a Datalog engine (we've been using DLV). This step may be included inside __cqapk_to_datalog__ in future versions.
-![Image of Yaktocat](https://raw.githubusercontent.com/aeaziz/pkcqa_to_datalog/master/schema.png?token=AF27ADJNBTUX2D76LCEZQVK6KKLRK)
+![Execution Flow](https://raw.githubusercontent.com/aeaziz/cqapk_to_datalog/master/schema.png?token=AF27ADJDQQGTHCO4MXECYMS6KL35M)
 
 # Input Format
 ![f1]
