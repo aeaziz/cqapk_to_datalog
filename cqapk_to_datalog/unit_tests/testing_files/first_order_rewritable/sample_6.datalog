@@ -1,0 +1,6 @@
+CERTAINTY(False) :- not CERTAINTY(True).
+CERTAINTY(True) :- S(Y,X), not R_1(Y).
+R_1(Y) :- S(Y,X), not R_2(Y,X).
+R_2(Y,X) :- S(Y,X), R(X,Y), not R_3(Y,X).
+R_3(Y,X) :- S(Y,X), R(X,Z_2_0), not R_4(Y,X,Z_2_0).
+R_4(Y,X,Z_2_0) :- S(Y,X), R(X,Z_2_0), Z_2_0=Y.

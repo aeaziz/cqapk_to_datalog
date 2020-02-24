@@ -1,4 +1,4 @@
-from cqapk_to_datalog.data_structures import AtomValue, Atom, EqualityAtom, CompareAtom, DatalogQuery, ConjunctiveQuery, \
+from cqapk_to_datalog.data_structures import AtomValue, Atom, DatalogProgram, CompareAtom, DatalogQuery, ConjunctiveQuery, \
     FunctionalDependency
 from cqapk_to_datalog.file_handle import read_datalog_file, read_cq_file
 
@@ -6,37 +6,34 @@ from cqapk_to_datalog.file_handle import read_datalog_file, read_cq_file
 def test_read_datalog():
     x = AtomValue("X", True)
     y = AtomValue("Y", True)
-    a = AtomValue("a", False)
-    b = AtomValue("b", False)
-    q1 = DatalogQuery(Atom("R", [x, y]))
-    q1.add_atom(Atom("S", [y, x]))
-    q1.add_atom(Atom("T", [x, x]))
+    z = AtomValue("Z", True)
+    true = AtomValue("True", False)
+    false = AtomValue("False", False)
 
-    q2 = DatalogQuery(Atom("R", [a, y]))
-    q2.add_atom(Atom("S", [y, a]))
-    q2.add_atom(Atom("T", [a, a]))
+    r_atom = Atom("R", [x, y])
+    s_atom = Atom("S", [y, z])
 
-    q3 = DatalogQuery(Atom("S", [y, x]))
-    q3.add_atom(Atom("R", [x, y]))
-    q3.add_atom(EqualityAtom(y, b))
+    q1 = DatalogQuery(Atom("CERTAINTY", [false]))
+    q2_head = Atom("CERTAINTY", [true])
+    q1.add_atom(q2_head, True)
 
-    q4 = DatalogQuery(Atom("T", [y, x]))
-    q4.add_atom(Atom("R", [x, y]))
-    q4.add_atom(EqualityAtom(y, b, True))
+    q2 = DatalogQuery(q2_head)
+    q2.add_atom(r_atom)
+    q3_head = Atom("R_1", [x])
+    q2.add_atom(q3_head, True)
 
-    q5 = DatalogQuery(Atom("V", [y, x]))
-    q5.add_atom(Atom("R", [x, y]))
-    q5.add_atom(CompareAtom(y, b, True))
+    q3 = DatalogQuery(q3_head)
+    q3.add_atom(r_atom)
+    q4_head = Atom("R_2", [x,y])
+    q3.add_atom(q4_head, True)
 
-    q6 = DatalogQuery(Atom("W_8", [y, x]))
-    q6.add_atom(Atom("R", [x, y]))
-    q6.add_atom(CompareAtom(y, b, False))
+    q4 = DatalogQuery(q4_head)
+    q4.add_atom(r_atom)
+    q4.add_atom(s_atom)
 
-    queries = [q1, q2, q3, q4, q5, q6]
-    read_queries = read_datalog_file("../sample_files/Datalog/test_read.txt")
-    assert len(queries) == len(read_queries)
-    for i in range(len(queries)):
-        assert queries[i] == read_queries[i]
+    program = DatalogProgram([q1, q2, q3, q4])
+    read_program = read_datalog_file("testing_files/first_order_rewritable/sample_1.datalog")
+    assert program == read_program
 
 
 def test_read_cq():
@@ -45,16 +42,15 @@ def test_read_cq():
     z = AtomValue("Z", True)
     a = AtomValue("a", False)
     b = AtomValue("b", False)
-    r = Atom("R", [x, a, y,z])
-    s = Atom("S", [y, x, b])
+    r = Atom("R", [a, x, y])
+    s = Atom("S", [y, z, b])
     fd0 = FunctionalDependency(frozenset([x]), y)
-    fd1 = FunctionalDependency(frozenset([x]), z)
-    fd2 = FunctionalDependency(frozenset([y]), x)
+    fd1 = FunctionalDependency(frozenset([y]), z)
     q = ConjunctiveQuery({
-        r: (frozenset([fd0, fd1]), [True, True, False, False], False),
-        s: (frozenset([fd2]), [True, False, False], True)
-    }, [x, y])
-    q_read, values = read_cq_file("../sample_files/CQ/test_read.json", "../sample_files/CQ/json_schema.json")
+        r: (frozenset([fd0]), [True, True, False], False),
+        s: (frozenset([fd1]), [True, False, False], False)
+    }, [])
+    q_read, values = read_cq_file("testing_files/first_order_rewritable/sample_2.json")
     assert q_read == q
 
 

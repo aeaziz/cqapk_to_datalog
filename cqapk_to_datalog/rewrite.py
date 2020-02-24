@@ -1,7 +1,7 @@
 import traceback
 import networkx as nx
 from typing import List
-from cqapk_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery
+from cqapk_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery, DatalogProgram
 from cqapk_to_datalog.algorithms import gen_attack_graph, gen_m_graph, all_cycles_weak, find_bad_internal_fd, initial_strong_components\
     , is_self_join_free
 from cqapk_to_datalog.rewriting_algorithms.fo_rewriting import rewrite_fo
@@ -13,7 +13,7 @@ This module contains the main rewriting algorithm.
 '''
 
 
-def rewrite(q: ConjunctiveQuery) -> List[DatalogQuery]:
+def rewrite(q: ConjunctiveQuery) -> DatalogProgram:
     """
     Main rewriting algorithm.
     Described in README File.
@@ -29,7 +29,7 @@ def rewrite(q: ConjunctiveQuery) -> List[DatalogQuery]:
     if all_cycles_weak(a_graph, q):
         bad = find_bad_internal_fd(q)
         if len(bad) != 0:
-            saturation_rules += saturate(q, bad)
+            q, saturation_rules = saturate(q, bad)
         a_cycles = list(nx.algorithms.simple_cycles(a_graph))
         reduction_index = 0
         while len(a_cycles) > 0:
@@ -48,7 +48,7 @@ def rewrite(q: ConjunctiveQuery) -> List[DatalogQuery]:
             reduction_index += 1
         topological_sort = list(nx.topological_sort(a_graph))
         rewriting_rules += rewrite_fo(q, topological_sort)
-        return saturation_rules + reduction_rules + rewriting_rules
+        return DatalogProgram(saturation_rules + reduction_rules + rewriting_rules)
     else:
         raise CustomException("The rewriting of the given query is a NP-Hard problem...")
 

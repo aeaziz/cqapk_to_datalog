@@ -7,7 +7,7 @@ This module is used to handle the saturation of a non saturated query.
 """
 
 
-def saturate(q: ConjunctiveQuery, bad_fd: FrozenSet[FunctionalDependency]) -> Tuple[DatalogQuery, List[DatalogQuery]]:
+def saturate(q: ConjunctiveQuery, bad_fd: FrozenSet[FunctionalDependency]) -> Tuple[ConjunctiveQuery, List[DatalogQuery]]:
     """
     Saturates a non saturated query.
     :param q:           A non saturated ConjunctiveQuery.
@@ -17,6 +17,7 @@ def saturate(q: ConjunctiveQuery, bad_fd: FrozenSet[FunctionalDependency]) -> Tu
     n_index = 0
     atoms = q.get_atoms()
     output = []
+    new_q = q
     for fd in bad_fd:
         content = list(fd.left) + [fd.right]
         n_atom = Atom("N_" + str(n_index), content)

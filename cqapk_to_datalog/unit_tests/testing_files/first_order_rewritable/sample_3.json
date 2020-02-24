@@ -17,8 +17,8 @@
     {
       "name" : "S",
       "consistent" : false,
-      "content" : [1, 2],
-      "key" : [true, false],
+      "content" : [1, 2, 2],
+      "key" : [true, false, false],
       "fd" : [
         {
           "left" : [1],

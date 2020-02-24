@@ -1,10 +1,13 @@
 import regex
+import os
+import cqapk_to_datalog
 from cqapk_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery, Atom, AtomValue, EqualityAtom, CompareAtom, \
-    FunctionalDependency
+    FunctionalDependency, DatalogProgram
 from typing import List, Tuple
 import traceback
 import json
 from jsonschema import validate
+import re
 
 
 def check_type(value, type_to_check):
@@ -12,8 +15,34 @@ def check_type(value, type_to_check):
         raise FormatError("File does not respect format specifications (Wrong type).")
 
 
-def read_cq_file(file: str, validation_file: str) -> Tuple[ConjunctiveQuery, List[AtomValue]]:
+def read_rdb_file(file: str) -> str:
+    f = open(file, "r")
+    res = ""
+    for line in f:
+        pattern = re.compile("[A-Z][A-za-z0-9]*\([A-Za-z0-9]+(,[A-Za-z0-9]+)*\).\n")
+        if not pattern.match(line):
+            raise FormatError("File does not respect format")
+        else:
+            relation_name, rest = line.split("(")
+            res += "+" + relation_name + "("
+            body, rest = rest.split(")")
+            values = body.split(",")
+            i = 0
+            for value in values:
+                if value.isdigit():
+                    res += value
+                else:
+                    res += "'" + value + "'"
+                if i < len(values)-1:
+                    res += ","
+                i += 1
+            res += ") \r\n"
+    return res
+
+
+def read_cq_file(file: str) -> Tuple[ConjunctiveQuery, List[AtomValue]]:
     try:
+        validation_file = os.path.dirname(cqapk_to_datalog.__file__)+"/json_schema.json"
         with open(validation_file) as validation_file:
             dict_valid = json.load(validation_file)
         with open(file) as json_file:
@@ -47,7 +76,7 @@ def read_cq_file(file: str, validation_file: str) -> Tuple[ConjunctiveQuery, Lis
         raise FormatError("File does not respect format specifications.")
 
 
-def read_datalog_file(file: str) -> List[DatalogQuery]:
+def read_datalog_file(file: str) -> DatalogProgram:
     f = open(file, "r")
     names_regex = "[A-Za-z][A-Za-z0-9_]*"
     atom_regex = names_regex + "(\(" + "(" + names_regex + ",)*" + names_regex + "\))?"
@@ -55,11 +84,15 @@ def read_datalog_file(file: str) -> List[DatalogQuery]:
     query_element_regex = "(" + other_regex + "|" + "(not )?" + atom_regex + ")"
     query_regex = "^" + atom_regex + " :- " + "(" + query_element_regex + ", )*" + query_element_regex + "\.$"
     queries = []
+    line_index = 0
+    start = 0
     try:
         for line in f:
             if regex.match(query_regex, line):
                 elements = regex.findall(query_element_regex, line)
                 head = parse_datalog_atom(elements[0][0])
+                if head.name == "CERTAINTY":
+                    start = line_index
                 q = DatalogQuery(head)
                 for element in elements[1:]:
                     atom_element = element[0]
@@ -72,11 +105,12 @@ def read_datalog_file(file: str) -> List[DatalogQuery]:
                     else:
                         q.add_atom(parse_datalog_atom(atom_element))
                 queries.append(q)
+                line_index += 1
             else:
                 raise FormatError("File does not respect format specifications.")
     except FormatError:
         traceback.print_exc()
-    return queries
+    return DatalogProgram(queries, start)
 
 
 def pread_cq_file(file: str) -> ConjunctiveQuery:

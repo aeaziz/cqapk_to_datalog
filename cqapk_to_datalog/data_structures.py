@@ -1,5 +1,6 @@
 from typing import Set, FrozenSet, List, Dict, Tuple, Union
 from copy import copy, deepcopy
+from pyDatalog import pyDatalog
 
 
 class AtomValue:
@@ -21,7 +22,17 @@ class AtomValue:
         String representation
         :return: String representation
         """
-        return self.name
+        return str(self.name)
+
+    def to_PyDatalog(self) -> str:
+        """
+        String representation for pyDatalog
+        :return: String representation
+        """
+        if not self.var and isinstance(self.name, str):
+            return "'" + self.name + "'"
+        else:
+            return str(self.name)
 
     def __eq__(self, other: object) -> bool:
         """
@@ -148,6 +159,18 @@ class Atom:
             content += str(value) + ","
         return self.name + "(" + content[:-1] + ")"
 
+    def to_pyDatalog(self) -> str:
+        """
+        String representation used in pyDatalog
+        :return: String representation
+        """
+        if len(self.content) == 0:
+            return self.name
+        content = ""
+        for value in self.content:
+            content += value.to_PyDatalog() + ","
+        return self.name + "(" + content[:-1] + ")"
+
     def __repr__(self) -> str:
         """
         String representation
@@ -188,7 +211,18 @@ class EqualityAtom:
             op = "!="
         else:
             op = "="
-        return self.v1.name + op + self.v2.name
+        return str(self.v1) + op + str(self.v2)
+
+    def to_pyDatalog(self):
+        """
+        String representation for pyDatalog
+        :return: String representation
+        """
+        if self.negative:
+            op = "!="
+        else:
+            op = "=="
+        return "(" + self.v1.to_PyDatalog() + op + self.v2.to_PyDatalog() + ")"
 
     def __repr__(self):
         """
@@ -235,7 +269,18 @@ class CompareAtom:
             op = ">"
         else:
             op = "<"
-        return self.v1.name + op + self.v2.name
+        return str(self.v1) + op + str(self.v2)
+
+    def to_pyDatalog(self):
+        """
+        String representation for pyDatalog
+        :return: String representation
+        """
+        if self.bigger:
+            op = ">"
+        else:
+            op = "<"
+        return "(" + self.v1.to_PyDatalog() + op + self.v2.to_PyDatalog() + ")"
 
     def __repr__(self):
         """
@@ -424,7 +469,7 @@ class ConjunctiveQuery:
         """
         if var in self.free_vars or not var.var:
             return self
-        return ConjunctiveQuery(self.content, self.free_vars+[var])
+        return ConjunctiveQuery(self.content, self.free_vars + [var])
 
     def remove_atom(self, atom: Atom) -> 'ConjunctiveQuery':
         """
@@ -505,3 +550,88 @@ class SequentialProof:
 
     def __repr__(self):
         return self.__str__()
+
+
+class DatalogProgram:
+    def __init__(self, rules: List[DatalogQuery], start_point: int = 0):
+        self.rules = rules
+        self.start_point = start_point
+
+    def get_start(self):
+        start = self.rules[self.start_point].head.to_pyDatalog()
+        if self.is_boolean():
+            start = start.replace("'False'", "RESULT")
+        return start
+
+    def is_boolean(self):
+        return self.rules[self.start_point].head.content[0].name == "False"
+
+    def get_terms(self) -> List[str]:
+        relations = set()
+        variables = set()
+        if self.is_boolean():
+            variables.add("RESULT")
+        for rule in self.rules:
+            if rule.head.name not in relations:
+                relations.add(rule.head.name)
+            for var in rule.head.variables():
+                if var.name not in variables:
+                    variables.add(var.name)
+            for atom in rule.atoms:
+                if isinstance(atom, Atom):
+                    if atom.name not in relations:
+                        relations.add(atom.name)
+                    for var in atom.variables():
+                        if var.name not in variables:
+                            variables.add(var.name)
+
+        return list(relations) + list(variables)
+
+    def get_formatted_program(self) -> str:
+        program = ""
+        for rule in self.rules:
+            command = rule.head.to_pyDatalog() + " <= ("
+            i = 0
+            positive_atoms = [a for a in rule.atoms if not rule.neg[a]]
+            negative_atoms = [a for a in rule.atoms if rule.neg[a]]
+            for atom in positive_atoms + negative_atoms:
+                if rule.neg[atom]:
+                    command += " ~(" + atom.to_pyDatalog() + ")"
+                else:
+                    command += " " + atom.to_pyDatalog()
+                if i < len(rule.atoms) - 1:
+                    command += " &"
+                else:
+                    command += ")"
+                i += 1
+            program += command + "\r\n"
+
+        return program
+
+    def run_program(self, database_str: str) -> pyDatalog.Answer:
+        pyDatalog.create_terms(*self.get_terms())
+        pyDatalog.load(database_str)
+        pyDatalog.load(self.get_formatted_program())
+        return pyDatalog.ask(self.get_start())
+
+    def __str__(self):
+        result = ""
+        for rule in self.rules:
+            result += str(rule) + "\r\n"
+        return result
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        if not isinstance(other, DatalogProgram):
+            return NotImplemented
+        if len(self) == len(other):
+            for i in range(len(self)):
+                if self.rules[i] != other.rules[i]:
+                    return False
+            return True
+        return False
+
+    def __len__(self):
+        return len(self.rules)
