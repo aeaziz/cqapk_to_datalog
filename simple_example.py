@@ -21,9 +21,9 @@ fd2 = FunctionalDependency(frozenset([y]), z)
 q = ConjunctiveQuery({}, [])
 
 # Choose free variables
-#q = q.release_variable(x)
-#q = q.release_variable(y)
-#q = q.release_variable(z)
+q = q.release_variable(x)
+q = q.release_variable(y)
+q = q.release_variable(z)
 
 # Add atoms to q
 q = q.add_atom(atom_r, frozenset([fd1]), [True, False], False)
