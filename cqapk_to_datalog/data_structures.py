@@ -467,7 +467,7 @@ class ConjunctiveQuery:
         Releases a variable ie. the variable becomes free
         :param var:     A AtomValue object (A variable)
         """
-        if var in self.free_vars or not var.var:
+        if var in self.free_vars or not var in self.get_all_variables():
             return self
         return ConjunctiveQuery(self.content, self.free_vars + [var])
 

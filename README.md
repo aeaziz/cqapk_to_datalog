@@ -77,6 +77,8 @@ print(datalog_program)
 # Dependencies
 - NetworkX 
     - *pip3 install networkx*
+- pyDatalog
+    - *pip3 install pydatalog*
     
     
 [f1]: http://chart.apis.google.com/chart?cht=tx&chl=q=R(\underline{x},y),S(\underline{y},z)
