@@ -28,12 +28,6 @@ fd3 = FunctionalDependency(frozenset([y]), z)
 # Initialize the conjunctive query
 q = ConjunctiveQuery({}, [])
 
-# Choose free variables
-q = q.release_variable(x)
-q = q.release_variable(y)
-q = q.release_variable(z)
-q = q.release_variable(w)
-
 # Add atoms to q
 #       First parameter :   The atom to be added
 #       Second parameter :  The set of FD (must be a frozenset as in the example)
@@ -41,6 +35,12 @@ q = q.release_variable(w)
 #       Fourth Parameter :  A boolean that must be True if the atom is consistent, False if not
 q = q.add_atom(atom_r, frozenset([fd1]), [True, False, False], False)
 q = q.add_atom(atom_s, frozenset([fd2]), [True, False, False], False)
+
+# Choose free variables
+q = q.release_variable(x)
+q = q.release_variable(y)
+q = q.release_variable(z)
+q = q.release_variable(w)
 
 # Launch rewriting
 program = rewrite.rewrite(q)
