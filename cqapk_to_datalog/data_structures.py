@@ -467,7 +467,7 @@ class ConjunctiveQuery:
         Releases a variable ie. the variable becomes free
         :param var:     A AtomValue object (A variable)
         """
-        if var in self.free_vars or not var in self.get_all_variables():
+        if var in self.free_vars or not var.var:
             return self
         return ConjunctiveQuery(self.content, self.free_vars + [var])
 
@@ -552,6 +552,31 @@ class SequentialProof:
         return self.__str__()
 
 
+class Database:
+    def __init__(self):
+        self.data = {}
+
+    def get_relations(self) -> List[str]:
+        return list(self.data.keys())
+
+    def add_relation(self, relation: str, arity: int):
+        if relation not in self.data:
+            self.data[relation] = arity, []
+
+    def add_fact(self, relation: str, values: List[Union[str, int]]) -> None:
+        if relation not in self.data or self.data[relation][0] == len(values):
+            if relation not in self.data:
+                self.add_relation(relation, len(values))
+            self.data[relation][1].append(values)
+
+    def format_for_pyDatalog(self) -> str:
+        string = ""
+        for relation in self.data:
+            for fact_tuple in self.data[relation][1]:
+                string += "+" + relation + str(fact_tuple).replace("[", "(").replace("]", ")") + "\n"
+        return string
+
+
 class DatalogProgram:
     def __init__(self, rules: List[DatalogQuery], start_point: int = 0):
         self.rules = rules
@@ -608,9 +633,25 @@ class DatalogProgram:
 
         return program
 
-    def run_program(self, database_str: str) -> pyDatalog.Answer:
+    def fix_missing_facts(self, db: Database):
+        template = """def {0}{1}: return iter(())"""
+        heads = [rule.head.name for rule in self.rules]
+        for rule in self.rules:
+            for atom in rule.atoms:
+                relation = atom.name
+                arity = len(atom.content)
+                if relation not in db.get_relations() and relation not in heads:
+                    arguments = []
+                    for i in range(arity):
+                        arguments.append("X_" + str(i))
+                    args_str = str(arguments).replace("[", "(").replace("]", ")").replace("'","")
+                    exec(template.format(relation, args_str))
+
+    def run_program(self, db: Database) -> pyDatalog.Answer:
+        pyDatalog.clear()
         pyDatalog.create_terms(*self.get_terms())
-        pyDatalog.load(database_str)
+        pyDatalog.load(db.format_for_pyDatalog())
+        self.fix_missing_facts(db)
         pyDatalog.load(self.get_formatted_program())
         return pyDatalog.ask(self.get_start())
 
