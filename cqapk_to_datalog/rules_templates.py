@@ -60,8 +60,7 @@ class FO_RewritingQuery(DatalogQuery):
             while k < len(atoms) and (not isinstance(atoms[k], Atom) or self.neg[atoms[k]] or var not in atoms[k].content):
                 k += 1
             if k == len(atoms):
-                for atom_name in q.get_atoms():
-                    atom = q.get_atom_by_name(atom_name)
+                for atom in q.get_atoms():
                     content = atom.content
                     if var in content:
                         new_vars = generate_new_variables("F", len(content) - 1, i)
