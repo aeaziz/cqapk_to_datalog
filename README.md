@@ -29,7 +29,6 @@ q = q.release_variable(x)
 q = q.add_atom(atom_r, frozenset([fd1]), [True, False], False)
 q = q.add_atom(atom_s, frozenset([fd2]), [True, False], False)
 datalog_program = rewrite.rewrite(q)
-print(datalog_program)
 ```
 ## Read a JSON file
 *See sample_files/CQ/json_schema.json*
@@ -71,7 +70,6 @@ from cqapk_to_datalog import rewrite
 
 q = read_cq_file("../sample_files/CQ/sample_1.json", "../sample_files/CQ/json_schema.json")[0]
 datalog_program = rewrite.rewrite(q)
-print(datalog_program)
 
 ```
 # Dependencies

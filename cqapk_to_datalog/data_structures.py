@@ -7,7 +7,6 @@ class AtomValue:
     """
     Class representing a value belonging to an Atom ie a Variable or a Constant
     """
-
     def __init__(self, name: str, variable: bool):
         """
         Constructor
@@ -24,16 +23,6 @@ class AtomValue:
         """
         return str(self.name)
 
-    def to_PyDatalog(self) -> str:
-        """
-        String representation for pyDatalog
-        :return: String representation
-        """
-        if not self.var and isinstance(self.name, str):
-            return "'" + self.name + "'"
-        else:
-            return str(self.name)
-
     def __eq__(self, other: object) -> bool:
         """
         Comparator
@@ -42,7 +31,7 @@ class AtomValue:
         """
         if not isinstance(other, AtomValue):
             return NotImplemented
-        return self.var == other.var and self.name == other.name
+        return self.name == other.name
 
     def __repr__(self) -> str:
         """
@@ -58,23 +47,17 @@ class AtomValue:
         """
         return hash(self.name)
 
-
 class FunctionalDependency:
     """
     Class representing a functional dependency
     """
-
-    def __init__(self, left_set: FrozenSet[AtomValue], right_var: AtomValue) -> None:
+    def __init__(self, left_vars: List[AtomValue], right_var: AtomValue) -> None:
         """
         Constructor
-        :param left_set: Set containing the left-side variables of the FD
+        :param left_vars: List containing the left-side variables of the FD
         :param right_var: Variable on the right side of the FD
         """
-        self.left = set()
-        for value in left_set:
-            if value.var:
-                self.left.add(value)
-        self.left = frozenset(self.left)
+        self.left = frozenset([value for value in left_vars if value.var])
         self.right = right_var
 
     def __eq__(self, other: object) -> bool:
@@ -108,13 +91,46 @@ class FunctionalDependency:
         """
         return hash((self.left, self.right))
 
+class FunctionalDependencySet:
+    def __init__(self, set_def: FrozenSet[FunctionalDependency] = None):
+        if set_def is None:
+            self.set = frozenset()
+        else:
+            self.set = set_def
+
+    def add(self, fd: FunctionalDependency) -> None:
+        self.set = self.set.union({fd})
+
+    def remove(self, fd: FunctionalDependency) -> None:
+        self.set = self.set - {fd}
+
+    def release_variable(self, var: AtomValue) -> 'FunctionalDependencySet':
+        new_set = frozenset()
+        for fd in self.set:
+            left = fd.left - {var}
+            if len(left) > 0 and fd.right != var:
+                new_set = new_set.union({FunctionalDependency(left, fd.right)})
+        return FunctionalDependencySet(new_set)
+
+    def union(self, other: 'FunctionalDependencySet'):
+        new = FunctionalDependencySet()
+        new.set = self.set.union(other.set)
+        return new
+
+    def __eq__(self, other):
+        if not isinstance(other, FunctionalDependencySet):
+            return NotImplemented
+        return self.set == other.set
+
+    def __str__(self):
+        return str(self.set)
 
 class Atom:
     """
     Class representing an atom
     """
 
-    def __init__(self, name: str, content: List[AtomValue]) -> None:
+    def __init__(self, name: str, content: List[AtomValue], released: Set[AtomValue] = None) -> None:
         """
         Constructor
         :param name: Name of the relation
@@ -122,10 +138,21 @@ class Atom:
         """
         self.name = name
         self.content = tuple(content)
+        if released is None:
+            self.released = set()
+        else:
+            self.released = released
 
     def variables(self) -> List[AtomValue]:
         """
         Returns the variables in the atom
+        :return: A list containing the variables in the atom (In order)
+        """
+        return [var for var in self.content if var.var and var not in self.released]
+
+    def all_variables(self) -> List[AtomValue]:
+        """
+        Returns the variables (including released variables) in the atom
         :return: A list containing the variables in the atom (In order)
         """
         return [var for var in self.content if var.var]
@@ -135,7 +162,15 @@ class Atom:
         Returns the constant in the atom
         :return: A list containing the constants in the atom (In order)
         """
-        return [con for con in self.content if not con.var]
+        return [con for con in self.content if not con.var or con in self.released]
+
+    def release_variable(self, var: AtomValue) -> 'Atom':
+        if var in [v for v in self.content if v.var] and var not in self.released:
+            new_var = AtomValue(var.name, False)
+            new_content = [v if v != var else new_var for v in self.content]
+            return Atom(self.name, new_content, self.released.union({var}))
+        else:
+            return self
 
     def __eq__(self, other: object):
         """
@@ -159,18 +194,6 @@ class Atom:
             content += str(value) + ","
         return self.name + "(" + content[:-1] + ")"
 
-    def to_pyDatalog(self) -> str:
-        """
-        String representation used in pyDatalog
-        :return: String representation
-        """
-        if len(self.content) == 0:
-            return self.name
-        content = ""
-        for value in self.content:
-            content += value.to_PyDatalog() + ","
-        return self.name + "(" + content[:-1] + ")"
-
     def __repr__(self) -> str:
         """
         String representation
@@ -184,7 +207,6 @@ class Atom:
         :return: Hash value
         """
         return hash((self.name, self.content))
-
 
 class EqualityAtom:
     """
@@ -213,17 +235,6 @@ class EqualityAtom:
             op = "="
         return str(self.v1) + op + str(self.v2)
 
-    def to_pyDatalog(self):
-        """
-        String representation for pyDatalog
-        :return: String representation
-        """
-        if self.negative:
-            op = "!="
-        else:
-            op = "=="
-        return "(" + self.v1.to_PyDatalog() + op + self.v2.to_PyDatalog() + ")"
-
     def __repr__(self):
         """
         String representation
@@ -243,7 +254,6 @@ class EqualityAtom:
             return NotImplemented
         return self.v1 == other.v1 and self.v2 == other.v2 and self.negative == other.negative
 
-
 class CompareAtom:
     """
     Datalog representation of an inequality between two Variables/Constants
@@ -251,7 +261,7 @@ class CompareAtom:
 
     def __init__(self, v1: AtomValue, v2: AtomValue, bigger: bool):
         """
-        Cosntructor
+        Constructor
         :param v1: A Variable or Constant
         :param v2: A Variable or Constant
         :param bigger: True if v1 > v2, False if v1 < v2
@@ -271,17 +281,6 @@ class CompareAtom:
             op = "<"
         return str(self.v1) + op + str(self.v2)
 
-    def to_pyDatalog(self):
-        """
-        String representation for pyDatalog
-        :return: String representation
-        """
-        if self.bigger:
-            op = ">"
-        else:
-            op = "<"
-        return "(" + self.v1.to_PyDatalog() + op + self.v2.to_PyDatalog() + ")"
-
     def __repr__(self):
         """
         String representation
@@ -300,7 +299,6 @@ class CompareAtom:
         if not isinstance(other, CompareAtom):
             return NotImplemented
         return self.v1 == other.v1 and self.v2 == other.v2 and self.bigger == other.bigger
-
 
 class DatalogQuery:
     """
@@ -346,7 +344,6 @@ class DatalogQuery:
             return NotImplemented
         return self.head == other.head and self.atoms == other.atoms and self.neg == other.neg
 
-
 class ConjunctiveQuery:
     """
     Class representing a Conjunctive Query.
@@ -354,10 +351,16 @@ class ConjunctiveQuery:
     This object also contain a set of free variables (Referred as frozen variables here).
     """
 
-    def __init__(self, content: Dict[Atom, Tuple[FrozenSet[FunctionalDependency], List[bool], bool]],
-                 free_vars: List[AtomValue]) -> None:
-        self.content = content
-        self.free_vars = free_vars
+    def __init__(self, content: Dict[Atom, Tuple[FunctionalDependencySet, List[bool], bool]] = None,
+                 free_vars: List[AtomValue] = None) -> None:
+        if content is None:
+            self.content = {}
+        else:
+            self.content = content
+        if free_vars is None:
+            self.free_vars = []
+        else:
+            self.free_vars = free_vars
 
     def get_atoms(self) -> Set[Atom]:
         """
@@ -365,6 +368,11 @@ class ConjunctiveQuery:
         :return:    A set of Atom objects.
         """
         return set(self.content.keys())
+
+    def get_atom_by_name(self, name: str) -> Atom:
+        for atom in self.content:
+            if atom.name == name:
+                return atom
 
     def get_all_variables(self) -> Set[AtomValue]:
         """
@@ -401,43 +409,51 @@ class ConjunctiveQuery:
         if atom in self.content:
             return [atom.content[i] for i in range(len(atom.content)) if not self.content[atom][1][i]]
 
-    def get_key_vars(self, atom: Atom) -> List[AtomValue]:
+    def get_key_vars(self, atom: Atom, with_free=False) -> List[AtomValue]:
         """
         Returns the variables in the key of a given atom
         :param atom:    An Atom object
         :return:        A List of AtomValue objects containing only variables (Respecting Atom's order).
         """
         if atom in self.content:
-            return [atom.content[i] for i in range(len(atom.content)) if
-                    atom.content[i].var and self.content[atom][1][i]]
+            if with_free:
+                return [atom.content[i] for i in range(len(atom.content)) if
+                        atom.content[i].var and self.content[atom][1][i]]
+            else:
+                return [atom.content[i] for i in range(len(atom.content)) if
+                        atom.content[i] in atom.variables() and self.content[atom][1][i]]
 
-    def get_not_key_vars(self, atom: Atom) -> List[AtomValue]:
+    def get_not_key_vars(self, atom: Atom, with_free=False) -> List[AtomValue]:
         """
         Returns the variables not in the key of a given atom
         :param atom:    An Atom object
         :return:        A List of AtomValue objects containing only variables (Respecting Atom's order).
         """
         if atom in self.content:
-            return [atom.content[i] for i in range(len(atom.content)) if
-                    not atom.content[i].var and self.content[atom][1][i]]
+            if with_free:
+                return [atom.content[i] for i in range(len(atom.content)) if
+                        atom.content[i].var and not self.content[atom][1][i]]
+            else:
+                return [atom.content[i] for i in range(len(atom.content)) if
+                        atom.content[i] in atom.variables() and not self.content[atom][1][i]]
 
-    def get_all_fd(self, exclude: Atom = None) -> FrozenSet[FunctionalDependency]:
+    def get_all_fd(self, exclude: Atom = None) -> FunctionalDependencySet:
         """
         Returns all the FunctionalDependencies of this query (Excluding eventually one atom).
         :param exclude:     Atom to be excluded.
-        :return:            A FrozenSet of FunctionalDependency objects.
+        :return:            A FunctionalDependencySet object.
         """
-        res = frozenset()
+        res = FunctionalDependencySet()
         for atom in self.content:
             if exclude is None or atom != exclude:
                 res = res.union(self.content[atom][0])
         return res
 
-    def get_atom_fd(self, atom: Atom) -> FrozenSet[FunctionalDependency]:
+    def get_atom_fd(self, atom: Atom) -> FunctionalDependencySet:
         """
         Returns all the FunctionalDependencies of a given Atom.
         :param atom:    An Atom Object.
-        :return:        A FrozenSet of FunctionalDependency objects.
+        :return:        A FunctionalDependencySet object.
         """
         if atom in self.content:
             return self.content[atom][0]
@@ -451,12 +467,12 @@ class ConjunctiveQuery:
         if atom in self.content:
             return self.content[atom][2]
 
-    def get_consistent_fd(self) -> FrozenSet[FunctionalDependency]:
+    def get_consistent_fd(self) -> FunctionalDependencySet:
         """
         Returns all the FunctionalDependencies of this query that appear in a consistent atom.
-        :return:            A FrozenSet of FunctionalDependency objects.
+        :return:            A FunctionalDependencySet object.
         """
-        res = frozenset()
+        res = FunctionalDependencySet()
         for atom in self.content:
             if self.content[atom][2]:
                 res = res.union(self.content[atom][0])
@@ -469,7 +485,14 @@ class ConjunctiveQuery:
         """
         if var in self.free_vars or not var.var:
             return self
-        return ConjunctiveQuery(self.content, self.free_vars + [var])
+        else:
+            new_content = {}
+            for atom in self.content:
+                new_atom = atom.release_variable(var)
+                fd_set = self.content[atom][0].release_variable(var)
+                new_content[new_atom] = (fd_set, self.content[atom][1], self.content[atom][2])
+
+        return ConjunctiveQuery(new_content, self.free_vars + [var])
 
     def remove_atom(self, atom: Atom) -> 'ConjunctiveQuery':
         """
@@ -485,7 +508,7 @@ class ConjunctiveQuery:
                 new_content[key] = self.content[key]
         return ConjunctiveQuery(new_content, self.free_vars)
 
-    def add_atom(self, atom: Atom, fd_set: FrozenSet[FunctionalDependency], is_key: List[bool],
+    def add_atom(self, atom: Atom, fd_set: FunctionalDependencySet, is_key: List[bool],
                  is_consistent: True) -> 'ConjunctiveQuery':
         """
         Given an atom, returns q U {atom}.
@@ -501,6 +524,12 @@ class ConjunctiveQuery:
         new_content[atom] = (fd_set, is_key, is_consistent)
         return ConjunctiveQuery(new_content, self.free_vars)
 
+    def decompose_atom(self, atom: Atom, only_variables : bool = False) -> Tuple[Set[AtomValue],List[AtomValue],List[AtomValue]] :
+        v = atom.variables()
+        x = self.get_key(atom) if not only_variables else self.get_key_vars(atom)
+        y = self.get_not_key(atom) if not only_variables else self.get_not_key_vars(atom)
+        return v,x,y
+    
     def __copy__(self):
         return ConjunctiveQuery(deepcopy(self.content), deepcopy(self.free_vars))
 
@@ -519,7 +548,6 @@ class ConjunctiveQuery:
 
     def __repr__(self):
         return self.__str__()
-
 
 class SequentialProof:
     """
@@ -551,13 +579,16 @@ class SequentialProof:
     def __repr__(self):
         return self.__str__()
 
-
 class Database:
     def __init__(self):
         self.data = {}
 
     def get_relations(self) -> List[str]:
         return list(self.data.keys())
+
+    def get_arity(self, relation) -> int:
+        if relation in self.data:
+            return self.data[relation][0]
 
     def add_relation(self, relation: str, arity: int):
         if relation not in self.data:
@@ -569,91 +600,20 @@ class Database:
                 self.add_relation(relation, len(values))
             self.data[relation][1].append(values)
 
-    def format_for_pyDatalog(self) -> str:
-        string = ""
+    def count_facts(self, relation):
+        if relation in self.data:
+            return len(self.data[relation][1])     
+    
+    def __str__(self):
+        res = ""
         for relation in self.data:
-            for fact_tuple in self.data[relation][1]:
-                string += "+" + relation + str(fact_tuple).replace("[", "(").replace("]", ")") + "\n"
-        return string
-
+            for fact in self.data[relation][1]:
+                res = res +relation +  "(" + ",".join([str(value) for value in fact]) + ")."
+        return(res)
 
 class DatalogProgram:
     def __init__(self, rules: List[DatalogQuery], start_point: int = 0):
         self.rules = rules
-        self.start_point = start_point
-
-    def get_start(self):
-        start = self.rules[self.start_point].head.to_pyDatalog()
-        if self.is_boolean():
-            start = start.replace("'False'", "RESULT")
-        return start
-
-    def is_boolean(self):
-        return self.rules[self.start_point].head.content[0].name == "False"
-
-    def get_terms(self) -> List[str]:
-        relations = set()
-        variables = set()
-        if self.is_boolean():
-            variables.add("RESULT")
-        for rule in self.rules:
-            if rule.head.name not in relations:
-                relations.add(rule.head.name)
-            for var in rule.head.variables():
-                if var.name not in variables:
-                    variables.add(var.name)
-            for atom in rule.atoms:
-                if isinstance(atom, Atom):
-                    if atom.name not in relations:
-                        relations.add(atom.name)
-                    for var in atom.variables():
-                        if var.name not in variables:
-                            variables.add(var.name)
-
-        return list(relations) + list(variables)
-
-    def get_formatted_program(self) -> str:
-        program = ""
-        for rule in self.rules:
-            command = rule.head.to_pyDatalog() + " <= ("
-            i = 0
-            positive_atoms = [a for a in rule.atoms if not rule.neg[a]]
-            negative_atoms = [a for a in rule.atoms if rule.neg[a]]
-            for atom in positive_atoms + negative_atoms:
-                if rule.neg[atom]:
-                    command += " ~(" + atom.to_pyDatalog() + ")"
-                else:
-                    command += " " + atom.to_pyDatalog()
-                if i < len(rule.atoms) - 1:
-                    command += " &"
-                else:
-                    command += ")"
-                i += 1
-            program += command + "\r\n"
-
-        return program
-
-    def fix_missing_facts(self, db: Database):
-        template = """def {0}{1}: return iter(())"""
-        heads = [rule.head.name for rule in self.rules]
-        for rule in self.rules:
-            for atom in rule.atoms:
-                relation = atom.name
-                arity = len(atom.content)
-                if relation not in db.get_relations() and relation not in heads:
-                    arguments = []
-                    for i in range(arity):
-                        arguments.append("X_" + str(i))
-                    args_str = str(arguments).replace("[", "(").replace("]", ")").replace("'","")
-                    exec(template.format(relation, args_str))
-
-    def run_program(self, db: Database) -> pyDatalog.Answer:
-        pyDatalog.clear()
-        pyDatalog.create_terms(*self.get_terms())
-        pyDatalog.load(db.format_for_pyDatalog())
-        self.fix_missing_facts(db)
-        pyDatalog.load(self.get_formatted_program())
-        return pyDatalog.ask(self.get_start())
 
     def __str__(self):
         result = ""

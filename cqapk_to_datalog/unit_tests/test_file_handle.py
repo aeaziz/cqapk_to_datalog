@@ -1,5 +1,5 @@
 from cqapk_to_datalog.data_structures import AtomValue, Atom, DatalogProgram, CompareAtom, DatalogQuery, ConjunctiveQuery, \
-    FunctionalDependency
+    FunctionalDependency, FunctionalDependencySet
 from cqapk_to_datalog.file_handle import read_datalog_file, read_cq_file
 
 
@@ -44,11 +44,13 @@ def test_read_cq():
     b = AtomValue("b", False)
     r = Atom("R", [a, x, y])
     s = Atom("S", [y, z, b])
-    fd0 = FunctionalDependency(frozenset([x]), y)
-    fd1 = FunctionalDependency(frozenset([y]), z)
+    fd0 = FunctionalDependencySet()
+    fd0.add(FunctionalDependency(frozenset([x]), y))
+    fd1 = FunctionalDependencySet()
+    fd1.add( FunctionalDependency(frozenset([y]), z))
     q = ConjunctiveQuery({
-        r: (frozenset([fd0]), [True, True, False], False),
-        s: (frozenset([fd1]), [True, False, False], False)
+        r: (fd0, [True, True, False], False),
+        s: (fd1, [True, False, False], False)
     }, [])
     q_read, values = read_cq_file("testing_files/first_order_rewritable/sample_2.json")
     assert q_read == q

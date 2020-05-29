@@ -1,8 +1,21 @@
 import networkx as nx
 from typing import Set, List, FrozenSet, Dict
-from cqapk_to_datalog.data_structures import AtomValue, Atom, FunctionalDependency, ConjunctiveQuery, SequentialProof
+from cqapk_to_datalog.data_structures import AtomValue, Atom, FunctionalDependency, ConjunctiveQuery, SequentialProof, FunctionalDependencySet
 from copy import deepcopy
 
+
+def generate_new_variables(base: str, n: int, index: int) -> List[AtomValue]:
+	"""
+	Generates n temporal variables
+	:param base:    Variable name to be used as base
+	:param index:   index used to number rules.
+	:param n:       The number of variables to be generated
+	:return:        A list containing n variables
+	"""
+	res = []
+	for i in range(0, n):
+		res.append(AtomValue(base + "_" + str(index) + "_" + str(i), True))
+	return res
 
 def generate_renaming(n: int, variables: List[AtomValue]) -> List[Dict[AtomValue, AtomValue]]:
     """
@@ -46,7 +59,7 @@ def apply_renaming_to_atom(atom: Atom, renaming: Dict[AtomValue, AtomValue]) -> 
     :return:                A new Atom (same name as atom) such that its content is the application of valuation over
                             the content of atom
     """
-    return Atom(atom.name, apply_renaming_to_atom_values(atom.content, renaming))
+    return Atom(atom.name, apply_renaming_to_atom_values(atom.content, renaming), apply_renaming_to_atom_values(atom.released, renaming))
 
 
 def is_self_join_free(q: ConjunctiveQuery) -> bool:
@@ -59,7 +72,7 @@ def is_self_join_free(q: ConjunctiveQuery) -> bool:
     return True
 
 
-def transitive_closure(var: Set[AtomValue], fd_set: FrozenSet[FunctionalDependency]) -> Set[AtomValue]:
+def transitive_closure(var: Set[AtomValue], fd_set: FunctionalDependencySet) -> Set[AtomValue]:
     """
     Computes the transitive closure of a set of variables given a set of FD
     :param var:         Set of variables
@@ -70,7 +83,7 @@ def transitive_closure(var: Set[AtomValue], fd_set: FrozenSet[FunctionalDependen
     size = 0
     while len(closure) != size:
         size = len(closure)
-        for fd in fd_set:
+        for fd in fd_set.set:
             if all(v in closure for v in fd.left) and fd.right not in closure:
                 closure.add(fd.right)
     return closure
@@ -175,8 +188,7 @@ def atom_attacks_variables(atom: Atom, var: AtomValue, q: ConjunctiveQuery) -> b
     :return:            True if atom attacks var, else returns False
     """
     n = Atom("N", [var])
-    q_new = deepcopy(q)
-    q_new.content[n] = (frozenset(), [True], False)
+    q_new = q.add_atom(n, FunctionalDependencySet(), [True], False)
     g = gen_attack_graph(q_new)
     return g.has_edge(atom, n)
 
@@ -258,7 +270,7 @@ def find_bad_internal_fd(q: ConjunctiveQuery) -> FrozenSet[FunctionalDependency]
     res = frozenset()
     possible_starts = []
     possible_ends = []
-    for fd in q.get_all_fd():
+    for fd in q.get_all_fd().set:
         if fd.left not in possible_starts:
             possible_starts.append(fd.left)
         if fd.right not in possible_ends:
@@ -288,3 +300,14 @@ def initial_strong_components(graph: nx.DiGraph) -> List[Set[Atom]]:
         if predecessors_set.issubset(atoms):
             iscc.append(atoms)
     return iscc
+
+def get_reductible_sets(q : ConjunctiveQuery, a_graph : nx.DiGraph) -> List[List[Atom]]:
+    isc = initial_strong_components(a_graph)
+    m_graph = gen_m_graph(q)
+    m_cycles = [cycle for cycle in nx.simple_cycles(m_graph)]
+    good_cycles = []
+    for cycle in m_cycles:
+        for component in isc:
+            if set(cycle).issubset(component):
+                good_cycles.append(cycle)
+    return good_cycles

@@ -1,6 +1,6 @@
 {
-  "values" : ["X", "Y", "Z"],
-  "free_vars" : [0, 1, 2],
+  "values" : ["X", "Y"],
+  "free_vars" : [0],
   "atoms": [
     {
       "name" : "R",
@@ -17,12 +17,12 @@
     {
       "name" : "S",
       "consistent" : false,
-      "content" : [1, 2],
+      "content" : [1, 0],
       "key" : [true, false],
       "fd" : [
         {
           "left" : [1],
-          "right" : 2
+          "right" : 0
         }
       ]
     }
