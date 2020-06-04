@@ -1,35 +1,46 @@
-import os
 import re
-from cqapk_to_datalog.data_structures import AtomValue, Atom, ConjunctiveQuery, FunctionalDependency, FunctionalDependencySet
+from cqapk_to_datalog.data_structures import AtomValue, Atom, ConjunctiveQuery, FunctionalDependency, \
+    FunctionalDependencySet
 from cqapk_to_datalog.exceptions import MalformedQuery
 from typing import List, Tuple
 
 
-def parse_atoms(string) -> List[Atom]:
+def parse_atoms(string) -> List[Tuple[Atom, FunctionalDependencySet, List[bool], bool]]:
+    """
+    Parses a list of Atoms
+    :param string:      String
+    :return:            A list of Atoms (under the form of a tuple (atom, fd_set, is_key, is_consistent))
+    """
     if string == "":
         return []
     pattern = re.compile("[A-Za-z_0-9]+\(.+\)(,[A-Za-z_0-9]+\(.+\))*$")
     if pattern.match(string):
         try:
             atoms_strings = string.split("),")
-            for i in range(len(atoms_strings)-1):
+            for i in range(len(atoms_strings) - 1):
                 atoms_strings[i] += ")"
             atoms = []
             for atom_string in atoms_strings:
                 atoms.append(parse_atom(atom_string))
             return atoms
         except MalformedQuery:
-            raise 
+            raise
     else:
         raise MalformedQuery(string, "list of Atoms")
 
+
 def parse_atom(string) -> Tuple[Atom, FunctionalDependencySet, List[bool], bool]:
+    """
+    Parses an Atom
+    :param string:      String
+    :return:            Atom (under the form of a tuple (atom, fd_set, is_key, is_consistent))
+    """
     pattern = re.compile("[A-Z][A-Za-z_0-9]*\*?\(\[[A-Za-z,_0-9]*\][A-Za-z,_0-9]*\)$")
     if pattern.match(string):
         name, body = string.split("(")
         consistent = False
         if "*" in name:
-            name = name.replace("*","")
+            name = name.replace("*", "")
             consistent = True
         key, rest = body[:-1].split(']')
         key = key[1:]
@@ -38,10 +49,11 @@ def parse_atom(string) -> Tuple[Atom, FunctionalDependencySet, List[bool], bool]
         key_values = parse_atoms_values(key)
         rest_values = parse_atoms_values(rest)
         content = key_values + rest_values
-        is_key = [True]*len(key_values) + [False]*len(rest_values)
+        is_key = [True] * len(key_values) + [False] * len(rest_values)
         return Atom(name, content), parse_fd_set(content, is_key), is_key, consistent
     else:
         raise MalformedQuery(string, "Atom")
+
 
 def parse_fd_set(content, is_key) -> FunctionalDependencySet:
     fd_set = FunctionalDependencySet()
@@ -50,6 +62,7 @@ def parse_fd_set(content, is_key) -> FunctionalDependencySet:
     for var in other_vars:
         fd_set.add(FunctionalDependency(key_vars, var))
     return fd_set
+
 
 def parse_atoms_values(string) -> List[AtomValue]:
     if string == "":
@@ -62,9 +75,10 @@ def parse_atoms_values(string) -> List[AtomValue]:
                 values.append(parse_atom_value(value))
             return values
         except MalformedQuery:
-            raise 
+            raise
     else:
         raise MalformedQuery(string, "list of AtomValues")
+
 
 def parse_atom_value(string) -> AtomValue:
     pattern_variable = re.compile("[A-Z][A-Za-z_0-9]*$")
@@ -75,12 +89,13 @@ def parse_atom_value(string) -> AtomValue:
     if pattern_str_constant.match(string) or pattern_int_constant.match(string):
         return AtomValue(string, False)
     raise MalformedQuery(string, "AtomValue")
-    
+
+
 def parse_query(string):
     pattern = re.compile("\[[A-Za-z_,0-9]*\]:[A-Za-z_,\(\)\[\]0-9]*$")
     if pattern.match(string):
         try:
-            free_var_body, query_body = string.split(":") 
+            free_var_body, query_body = string.split(":")
             free_var_body = free_var_body[1:-1]
             free_vars = parse_atoms_values(free_var_body)
             q = ConjunctiveQuery()
@@ -96,16 +111,15 @@ def parse_query(string):
     else:
         raise MalformedQuery(string, "ConjunctiveQuery")
 
+
 def clean_line(string) -> str:
     return string.replace(" ", "").replace("\n", "").replace("\t", "")
 
+
 def parse_queries_from_file(file_name) -> List[ConjunctiveQuery]:
-    file = open(file_name, 'r') 
+    file = open(file_name, 'r')
     queries = []
     for query in file.readlines():
         q = parse_query(clean_line(query))
         queries.append(q)
     return queries
-
-
-

@@ -1,12 +1,12 @@
 from typing import Set, FrozenSet, List, Dict, Tuple, Union
-from copy import copy, deepcopy
-from pyDatalog import pyDatalog
+from copy import copy
 
 
 class AtomValue:
     """
     Class representing a value belonging to an Atom ie a Variable or a Constant
     """
+
     def __init__(self, name: str, variable: bool):
         """
         Constructor
@@ -47,10 +47,12 @@ class AtomValue:
         """
         return hash(self.name)
 
+
 class FunctionalDependency:
     """
     Class representing a functional dependency
     """
+
     def __init__(self, left_vars: List[AtomValue], right_var: AtomValue) -> None:
         """
         Constructor
@@ -91,39 +93,76 @@ class FunctionalDependency:
         """
         return hash((self.left, self.right))
 
+
 class FunctionalDependencySet:
+    """
+    Class representing a set of non-trivial FunctionalDependencies.
+    """
+
     def __init__(self, set_def: FrozenSet[FunctionalDependency] = None):
+        """
+        Constructor
+        :param set_def:     A set of FunctionalDependencies to be added at construction.
+        """
         if set_def is None:
             self.set = frozenset()
         else:
             self.set = set_def
 
     def add(self, fd: FunctionalDependency) -> None:
+        """
+        Adds a new FunctionalDependency.
+        :param fd:          A FunctionalDependency
+        """
         self.set = self.set.union({fd})
 
     def remove(self, fd: FunctionalDependency) -> None:
+        """
+        Removes a FunctionalDependency.
+        :param fd:          A FunctionalDependency
+        """
         self.set = self.set - {fd}
 
     def release_variable(self, var: AtomValue) -> 'FunctionalDependencySet':
+        """
+        Function called when a variable is released. Computes a new FunctionalDependencySet.
+        :param var:         Variable that has been released
+        :return:            New FunctionalDependencySet
+        """
         new_set = frozenset()
         for fd in self.set:
             left = fd.left - {var}
-            if len(left) > 0 and fd.right != var:
-                new_set = new_set.union({FunctionalDependency(left, fd.right)})
+            if fd.right != var:
+                new_set = new_set.union({FunctionalDependency(list(left), fd.right)})
         return FunctionalDependencySet(new_set)
 
-    def union(self, other: 'FunctionalDependencySet'):
+    def union(self, other: 'FunctionalDependencySet') -> 'FunctionalDependencySet':
+        """
+        Returns a new FunctionalDependencySet which is the union of this FunctionalDependencySet and another one.
+        :param other:       The other FunctionalDependencySet
+        :return:            The union of this FunctionalDependencySet and other
+        """
         new = FunctionalDependencySet()
         new.set = self.set.union(other.set)
         return new
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, FunctionalDependencySet):
             return NotImplemented
         return self.set == other.set
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         return str(self.set)
+
 
 class Atom:
     """
@@ -133,8 +172,9 @@ class Atom:
     def __init__(self, name: str, content: List[AtomValue], released: Set[AtomValue] = None) -> None:
         """
         Constructor
-        :param name: Name of the relation
-        :param content: List representing the content of the Atom. May contain Variables and Constants
+        :param name:            Name of the relation
+        :param content:         List representing the content of the Atom. May contain Variables and Constants
+        :param released:        List of released variables
         """
         self.name = name
         self.content = tuple(content)
@@ -159,12 +199,17 @@ class Atom:
 
     def constants(self) -> List[AtomValue]:
         """
-        Returns the constant in the atom
+        Returns the constants in the atom
         :return: A list containing the constants in the atom (In order)
         """
         return [con for con in self.content if not con.var or con in self.released]
 
     def release_variable(self, var: AtomValue) -> 'Atom':
+        """
+        Releases a variable
+        :param var:         The variable to be released
+        :return:            A new atom identical to this one, but where var is a released variable.
+        """
         if var in [v for v in self.content if v.var] and var not in self.released:
             new_var = AtomValue(var.name, False)
             new_content = [v if v != var else new_var for v in self.content]
@@ -208,6 +253,7 @@ class Atom:
         """
         return hash((self.name, self.content))
 
+
 class EqualityAtom:
     """
     Datalog representation of an equality (positive or negative) between two Variables/Constants
@@ -224,7 +270,7 @@ class EqualityAtom:
         self.v2 = v2
         self.negative = negative
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         String representation
         :return: String representation
@@ -235,7 +281,7 @@ class EqualityAtom:
             op = "="
         return str(self.v1) + op + str(self.v2)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         String representation
         :return: String representation
@@ -249,10 +295,16 @@ class EqualityAtom:
         """
         return hash((self.negative, (self.v1, self.v2)))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, EqualityAtom):
             return NotImplemented
         return self.v1 == other.v1 and self.v2 == other.v2 and self.negative == other.negative
+
 
 class CompareAtom:
     """
@@ -270,7 +322,7 @@ class CompareAtom:
         self.v2 = v2
         self.bigger = bigger
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         String representation
         :return: String representation
@@ -281,7 +333,7 @@ class CompareAtom:
             op = "<"
         return str(self.v1) + op + str(self.v2)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         String representation
         :return: String representation
@@ -295,10 +347,16 @@ class CompareAtom:
         """
         return hash((self.bigger, (self.v1, self.v2)))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, CompareAtom):
             return NotImplemented
         return self.v1 == other.v1 and self.v2 == other.v2 and self.bigger == other.bigger
+
 
 class DatalogQuery:
     """
@@ -306,6 +364,10 @@ class DatalogQuery:
     """
 
     def __init__(self, head: Atom):
+        """
+        Constructor
+        :param head:       Atom that will serve as head of the query
+        """
         self.head = head
         self.atoms = set()
         self.neg = {}
@@ -327,7 +389,11 @@ class DatalogQuery:
         if atom in self.atoms:
             self.atoms.remove(atom)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         body = []
         for atom in self.atoms:
             if self.neg[atom]:
@@ -336,23 +402,38 @@ class DatalogQuery:
                 body.append(str(atom))
         return str(self.head) + " :- " + ', '.join(body) + "."
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         return self.__str__()
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, DatalogQuery):
             return NotImplemented
         return self.head == other.head and self.atoms == other.atoms and self.neg == other.neg
+
 
 class ConjunctiveQuery:
     """
     Class representing a Conjunctive Query.
     We consider that a Conjunctive Query is a set of tuples (Atom, Set of FD, Key Positions, Consistent).
-    This object also contain a set of free variables (Referred as frozen variables here).
+    This object also contain a set of free variables.
     """
 
     def __init__(self, content: Dict[Atom, Tuple[FunctionalDependencySet, List[bool], bool]] = None,
                  free_vars: List[AtomValue] = None) -> None:
+        """
+        Constructor
+        :param content:     Content of the query
+        :param free_vars:   Free variables
+        """
         if content is None:
             self.content = {}
         else:
@@ -370,6 +451,11 @@ class ConjunctiveQuery:
         return set(self.content.keys())
 
     def get_atom_by_name(self, name: str) -> Atom:
+        """
+        Searches for an atom in the query with the given relation name
+        :param name:        Relation name
+        :return:            Atom with that relation name (if there's one in the query)
+        """
         for atom in self.content:
             if atom.name == name:
                 return atom
@@ -412,8 +498,9 @@ class ConjunctiveQuery:
     def get_key_vars(self, atom: Atom, with_free=False) -> List[AtomValue]:
         """
         Returns the variables in the key of a given atom
-        :param atom:    An Atom object
-        :return:        A List of AtomValue objects containing only variables (Respecting Atom's order).
+        :param with_free:   True if released variables should be included
+        :param atom:        An Atom object
+        :return:            A List of AtomValue objects containing only variables (Respecting Atom's order).
         """
         if atom in self.content:
             if with_free:
@@ -426,8 +513,9 @@ class ConjunctiveQuery:
     def get_not_key_vars(self, atom: Atom, with_free=False) -> List[AtomValue]:
         """
         Returns the variables not in the key of a given atom
-        :param atom:    An Atom object
-        :return:        A List of AtomValue objects containing only variables (Respecting Atom's order).
+        :param with_free:   True if released variables should be included
+        :param atom:        An Atom object
+        :return:            A List of AtomValue objects containing only variables (Respecting Atom's order).
         """
         if atom in self.content:
             if with_free:
@@ -480,7 +568,8 @@ class ConjunctiveQuery:
 
     def release_variable(self, var: AtomValue) -> 'ConjunctiveQuery':
         """
-        Releases a variable ie. the variable becomes free
+        Releases a variable ie. the variable becomes free. A new ConjunctiveQuery is created where the given variable
+        is a free variable.
         :param var:     A AtomValue object (A variable)
         """
         if var in self.free_vars or not var.var:
@@ -524,21 +613,34 @@ class ConjunctiveQuery:
         new_content[atom] = (fd_set, is_key, is_consistent)
         return ConjunctiveQuery(new_content, self.free_vars)
 
-    def decompose_atom(self, atom: Atom, only_variables : bool = False) -> Tuple[Set[AtomValue],List[AtomValue],List[AtomValue]] :
+    def decompose_atom(self, atom: Atom, only_variables: bool = False) -> Tuple[List[AtomValue], List[AtomValue], List[AtomValue]]:
+        """
+        Decomposes an atom in three lists of AtomValues : v contains all the variables, x contains the key and
+        y contains the rest of the atom.
+        :param atom:                Atom to be decomposed
+        :param only_variables:      True if only variables should be considered for x and y
+        :return:
+        """
         v = atom.variables()
         x = self.get_key(atom) if not only_variables else self.get_key_vars(atom)
         y = self.get_not_key(atom) if not only_variables else self.get_not_key_vars(atom)
-        return v,x,y
-    
-    def __copy__(self):
-        return ConjunctiveQuery(deepcopy(self.content), deepcopy(self.free_vars))
+        return v, x, y
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, ConjunctiveQuery):
             return NotImplemented
         return self.content == other.content and self.free_vars == other.free_vars
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         res = ""
         for atom in self.content:
             if self.is_atom_consistent(atom):
@@ -546,15 +648,24 @@ class ConjunctiveQuery:
             res += str(atom) + ", "
         return res[:-2]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         return self.__str__()
+
 
 class SequentialProof:
     """
-    Class representing a Sequential Proof.
+    Class representing a Sequential Proof for a FunctionalDependency.
     """
-
     def __init__(self, fd: FunctionalDependency, steps: List[Atom]):
+        """
+        Constructor
+        :param fd:          The FunctionalDependency
+        :param steps:       Atoms forming the sequential proof
+        """
         self.fd = fd
         self.steps = steps
 
@@ -568,63 +679,133 @@ class SequentialProof:
             return NotImplemented
         return set(self.steps).issubset(other.steps)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object):
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, SequentialProof):
             return NotImplemented
         return self.fd == other.fd and set(self.steps) == set(other.steps)
 
     def __str__(self):
+        """
+        String representation
+        :return: String representation
+        """
         return str(self.fd) + " : " + str(self.steps)
 
     def __repr__(self):
+        """
+        String representation
+        :return: String representation
+        """
         return self.__str__()
 
+
 class Database:
+    """
+    Class representing a Database (without constraints) (Only for testing)
+    """
     def __init__(self):
+        """
+        Constructor
+        """
         self.data = {}
 
     def get_relations(self) -> List[str]:
+        """
+        Returns all the relations name in the database
+        :return:    A list of relation names
+        """
         return list(self.data.keys())
 
-    def get_arity(self, relation) -> int:
+    def get_arity(self, relation: str) -> int:
+        """
+        Returns the arity of a relation (if it exists in the database)
+        :param relation:       Name of a relation
+        :return:               Arity of the relation
+        """
         if relation in self.data:
             return self.data[relation][0]
 
     def add_relation(self, relation: str, arity: int):
+        """
+        Adds a new relation
+        :param relation:        Relation name
+        :param arity:           Arity
+        """
         if relation not in self.data:
             self.data[relation] = arity, []
 
     def add_fact(self, relation: str, values: List[Union[str, int]]) -> None:
+        """
+        Adds a new fact
+        :param relation:        Relation name
+        :param values:          Values of the fact
+        :return:
+        """
         if relation not in self.data or self.data[relation][0] == len(values):
             if relation not in self.data:
                 self.add_relation(relation, len(values))
             self.data[relation][1].append(values)
 
-    def count_facts(self, relation):
+    def count_facts(self, relation: str) -> int:
+        """
+        Counts the number of facts in a given relation (if it exists in the database)
+        :param relation:    A relation name
+        :return:
+        """
         if relation in self.data:
-            return len(self.data[relation][1])     
-    
-    def __str__(self):
+            return len(self.data[relation][1])
+
+    def __str__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         res = ""
         for relation in self.data:
             for fact in self.data[relation][1]:
-                res = res +relation +  "(" + ",".join([str(value) for value in fact]) + ")."
-        return(res)
+                res = res + relation + "(" + ",".join([str(value) for value in fact]) + ")."
+        return res
+
 
 class DatalogProgram:
-    def __init__(self, rules: List[DatalogQuery], start_point: int = 0):
+    """
+    Class representing a Datalog program
+    """
+    def __init__(self, rules: List[DatalogQuery]):
+        """
+        Constructor
+        :param rules: List containing the Datalog rules
+        """
         self.rules = rules
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         result = ""
         for rule in self.rules:
             result += str(rule) + "\r\n"
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        String representation
+        :return: String representation
+        """
         return self.__str__()
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Comparator
+        :param other: Another object
+        :return: True if the objects are equal, else returns False
+        """
         if not isinstance(other, DatalogProgram):
             return NotImplemented
         if len(self) == len(other):
@@ -634,5 +815,9 @@ class DatalogProgram:
             return True
         return False
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """
+        Length
+        :return: Length of the program (number of rules)
+        """
         return len(self.rules)

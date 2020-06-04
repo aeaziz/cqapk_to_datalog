@@ -1,13 +1,7 @@
 import regex
-import os
-import cqapk_to_datalog
-from cqapk_to_datalog.data_structures import ConjunctiveQuery, DatalogQuery, Atom, AtomValue, EqualityAtom, CompareAtom, \
-    FunctionalDependency, DatalogProgram, FunctionalDependencySet
-from typing import List, Tuple
-import traceback
-import json
-from jsonschema import validate
-import re
+from cqapk_to_datalog.data_structures import DatalogQuery, Atom, AtomValue, EqualityAtom, CompareAtom, DatalogProgram
+from cqapk_to_datalog.exceptions import MalformedQuery
+
 
 def read_datalog_file(file: str) -> DatalogProgram:
     f = open(file, "r")
@@ -18,14 +12,11 @@ def read_datalog_file(file: str) -> DatalogProgram:
     query_regex = "^" + atom_regex + " :- " + "(" + query_element_regex + ", )*" + query_element_regex + "\.$"
     queries = []
     line_index = 0
-    start = 0
     try:
         for line in f:
             if regex.match(query_regex, line):
                 elements = regex.findall(query_element_regex, line)
                 head = parse_datalog_atom(elements[0][0])
-                if head.name == "CERTAINTY":
-                    start = line_index
                 q = DatalogQuery(head)
                 for element in elements[1:]:
                     atom_element = element[0]
@@ -40,10 +31,11 @@ def read_datalog_file(file: str) -> DatalogProgram:
                 queries.append(q)
                 line_index += 1
             else:
-                raise FormatError("File does not respect format specifications.")
-    except FormatError:
-        traceback.print_exc()
-    return DatalogProgram(queries, start)
+                raise MalformedQuery(line, "DatalogQuery")
+    except MalformedQuery:
+        raise
+    return DatalogProgram(queries)
+
 
 def parse_atom_value(atom_value_str: str) -> AtomValue:
     """
@@ -95,12 +87,3 @@ def parse_datalog_compare_atom(atom_str: str) -> CompareAtom:
     else:
         v1, v2 = atom_str.split("<")
         return CompareAtom(parse_atom_value(v1), parse_atom_value(v2), False)
-
-
-class FormatError(Exception):
-    """
-    Exception used to handle bad formed files
-    """
-
-    def __init__(self, msg):
-        self.msg = msg

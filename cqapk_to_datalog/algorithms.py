@@ -1,30 +1,30 @@
 import networkx as nx
 from typing import Set, List, FrozenSet, Dict
-from cqapk_to_datalog.data_structures import AtomValue, Atom, FunctionalDependency, ConjunctiveQuery, SequentialProof, FunctionalDependencySet
-from copy import deepcopy
+from cqapk_to_datalog.data_structures import AtomValue, Atom, FunctionalDependency, ConjunctiveQuery, SequentialProof, \
+    FunctionalDependencySet
 
 
 def generate_new_variables(base: str, n: int, index: int) -> List[AtomValue]:
-	"""
-	Generates n temporal variables
-	:param base:    Variable name to be used as base
-	:param index:   index used to number rules.
-	:param n:       The number of variables to be generated
-	:return:        A list containing n variables
-	"""
-	res = []
-	for i in range(0, n):
-		res.append(AtomValue(base + "_" + str(index) + "_" + str(i), True))
-	return res
+    """
+    Generates n temporal variables
+    :param base:    Variable name to be used as base
+    :param index:   Used index.
+    :param n:       The number of variables to be generated
+    :return:        A list containing n variables
+    """
+    res = []
+    for i in range(0, n):
+        res.append(AtomValue(base + "_" + str(index) + "_" + str(i), True))
+    return res
+
 
 def generate_renaming(n: int, variables: List[AtomValue]) -> List[Dict[AtomValue, AtomValue]]:
     """
     Generate n renaming for a given list of variables
-    :param n:           Number of renaming
-    :param variables:   list of variables
+    :param n:           Number of renamings needed
+    :param variables:   List of variables
     :return:            A list of dictionaries that maps each variable to their renamed variable
     """
-
     renaming_list = []
     for i in range(n):
         renaming = {}
@@ -34,13 +34,14 @@ def generate_renaming(n: int, variables: List[AtomValue]) -> List[Dict[AtomValue
     return renaming_list
 
 
-def apply_renaming_to_atom_values(atom_values: List[AtomValue], renaming: Dict[AtomValue, AtomValue]):
+def apply_renaming_to_atom_values(atom_values: List[AtomValue], renaming: Dict[AtomValue, AtomValue]) -> List[
+    AtomValue]:
     """
-    Applies a given valuation to a given list of variables
+    Applies a given renaming to a given list of variables
     :param atom_values:     List of variables
     :param renaming:        A Dict representing a renaming
-    :return                 List of variables such that each element is the result of applying valuation over an
-                            element of atom_values
+    :return                 List of variables such that each element is the result of applying the renaming 
+                            over an element of atom_values
     """
     res = []
     for av in atom_values:
@@ -53,16 +54,23 @@ def apply_renaming_to_atom_values(atom_values: List[AtomValue], renaming: Dict[A
 
 def apply_renaming_to_atom(atom: Atom, renaming: Dict[AtomValue, AtomValue]) -> Atom:
     """
-    Applies a given valuation over a given Atom
+    Applies a given renaming over a given Atom
     :param atom:            An Atom
     :param renaming:        A Dict representing a renaming
-    :return:                A new Atom (same name as atom) such that its content is the application of valuation over
-                            the content of atom
+    :return:                A new Atom (same name as the given atom) such that its content is the application of the
+                            renaming over the original content of the given atom
     """
-    return Atom(atom.name, apply_renaming_to_atom_values(atom.content, renaming), apply_renaming_to_atom_values(atom.released, renaming))
+    return Atom(atom.name,
+                apply_renaming_to_atom_values(atom.content, renaming),
+                set(apply_renaming_to_atom_values(list(atom.released), renaming)))
 
 
 def is_self_join_free(q: ConjunctiveQuery) -> bool:
+    """
+    Returns True is given bcq q is a sjfbcq
+    :param q:   A conjunctive query
+    :return:    True if q is a sjfbcq, otherwise returns False
+    """
     atoms = list(q.get_atoms())
     for i in range(len(atoms)):
         atom = atoms[i]
@@ -91,7 +99,7 @@ def transitive_closure(var: Set[AtomValue], fd_set: FunctionalDependencySet) -> 
 
 def atom_plus(atom: Atom, q: ConjunctiveQuery) -> Set[AtomValue]:
     """
-    Computes the plus q set of an atom (Read articles for more information)
+    Computes the plus q set of an atom (Read report for more information)
     :param atom:        Atom whose plus will be computed
     :param q:           A ConjunctiveQuery
     :return:            The plus q set of variables of atom
@@ -104,8 +112,7 @@ def atom_plus(atom: Atom, q: ConjunctiveQuery) -> Set[AtomValue]:
 
 def gen_attack_graph(q: ConjunctiveQuery) -> nx.DiGraph:
     """
-    Computes the attack graph of a given ConjunctiveQuery q. It computes first direct links a -> b and then uses
-    b to find nodes c such as a -> c
+    Computes the attack graph of a given ConjunctiveQuery q.
     :param q:   A ConjunctiveQuery
     :return:    Generated Attack Graph
     """
@@ -114,40 +121,31 @@ def gen_attack_graph(q: ConjunctiveQuery) -> nx.DiGraph:
     for atom in atoms:
         g.add_node(atom)
     for atom in atoms:
-        variables = set(atom.variables())
-        attacked = []
         plus = atom_plus(atom, q)
-        for other in [o for o in atoms if atom != o]:
-            other_variables = set(other.variables())
-            inter = variables.intersection(other_variables)
-            inter = inter - set(plus)
-            if inter:
-                attacked.append(other)
-
-        size = 0
-        current = attacked
-        while size != len(attacked):
-            size = len(attacked)
-            news = []
-            for intermediate in current:
-                for other in [o for o in atoms if o not in attacked and o != atom]:
-                    inter = set(intermediate.variables()).intersection(set(other.variables()))
-                    inter = inter - set(plus)
-                    if inter:
-                        attacked.append(other)
-                        news.append(other)
-            current = news
-
-        for other in attacked:
+        reachable = {atom}
+        candidates = atoms - {atom}
+        size = -1
+        while len(reachable) != size:
+            size = len(reachable)
+            new_reachable = set()
+            for atom1 in reachable:
+                for atom2 in candidates:
+                    intersection = set(atom1.variables()).intersection(set(atom2.variables()))
+                    without_plus = intersection - plus
+                    if without_plus:
+                        new_reachable.add(atom2)
+            reachable = reachable.union(new_reachable)
+            candidates = candidates - new_reachable
+        for other in reachable - {atom}:
             g.add_edge(atom, other)
     return g
 
 
 def gen_m_graph(q: ConjunctiveQuery) -> nx.DiGraph:
     """
-    Generates a M Graph
+    Computes the M-graph of a given ConjunctiveQuery q.
     :param q:   A ConjunctiveQuery
-    :return:    M Graph generated from atoms
+    :return:    Generated M-Graph
     """
     atoms = q.get_atoms()
     g = nx.DiGraph()
@@ -195,7 +193,8 @@ def atom_attacks_variables(atom: Atom, var: AtomValue, q: ConjunctiveQuery) -> b
 
 def sequential_proofs(fd: FunctionalDependency, q: ConjunctiveQuery) -> List[SequentialProof]:
     """
-    Returns all the sequential proofs for a given FD
+    Returns all the sequential proofs for a given FD. This function returns only elementary sequential proofs ie
+    no sequential proof in the set is a subset of another one in the set.
     :param fd :     A FD
     :param q:       A ConjunctiveQuery
     :return:        A SequentialProof object for fd
@@ -208,12 +207,12 @@ def sequential_proofs(fd: FunctionalDependency, q: ConjunctiveQuery) -> List[Seq
 def sequential_proof_rec(fd: FunctionalDependency, acc: Set[AtomValue], q: ConjunctiveQuery, current_sp: List[Atom],
                          current_res: List[SequentialProof]) -> None:
     """
-    Recursive function used to compute sequential proofs
-    :param fd:              A FD
-    :param acc:             A set of Variables containing the variables implied by the current sequential proof
+    Recursive function used to compute sequential proofs for a given FD X -> z
+    :param fd:              A FD of the form X -> z
+    :param acc:             A set of Variables containing the variables implied by X with the current sequential proof
     :param q:               A ConjunctiveQuery
     :param current_sp:      Current sequential proof
-    :param current_res:     List that will contain all the sequential proofs
+    :param current_res:     List that will contain all the sequential proofs for X -> z
     """
     if fd.right in acc:
         sequential_proof = SequentialProof(fd, current_sp)
@@ -238,7 +237,7 @@ def fd_is_internal(fd: FunctionalDependency, q: ConjunctiveQuery) -> bool:
     Checks if a FD is internal
     :param fd:      A FD
     :param q:       A ConjunctiveQuery
-    :return:        True if fd is internal
+    :return:        True if fd is internal, otherwise returns False
     """
     in_atom = False
     atoms = q.get_atoms()
@@ -262,10 +261,9 @@ def fd_is_internal(fd: FunctionalDependency, q: ConjunctiveQuery) -> bool:
 
 def find_bad_internal_fd(q: ConjunctiveQuery) -> FrozenSet[FunctionalDependency]:
     """
-    Given a non saturated ConjunctiveQuery, returns the FunctionalDependencies culprit of  the non saturation of the
-    query.
+    Given a non saturated ConjunctiveQuery, returns the FunctionalDependencies culprit of it's non saturation.
     :param q:       A ConjunctiveQuery.
-    :return:        A FrozenSet of FunctionalDependency culprit of  the non saturation of q.
+    :return:        A FrozenSet containing the FunctionalDependencies culprit of the non saturation of q.
     """
     res = frozenset()
     possible_starts = []
@@ -301,7 +299,14 @@ def initial_strong_components(graph: nx.DiGraph) -> List[Set[Atom]]:
             iscc.append(atoms)
     return iscc
 
-def get_reductible_sets(q : ConjunctiveQuery, a_graph : nx.DiGraph) -> List[List[Atom]]:
+
+def get_reductible_sets(q: ConjunctiveQuery, a_graph: nx.DiGraph) -> List[List[Atom]]:
+    """
+    Returns the cycles in the M-graph of q that corresponds to an initial strong component in the attack graph of q
+    :param q:           A ConjunctiveQuery
+    :param a_graph:     The attack graph of q
+    :return:            A list containing all the cycles
+    """
     isc = initial_strong_components(a_graph)
     m_graph = gen_m_graph(q)
     m_cycles = [cycle for cycle in nx.simple_cycles(m_graph)]
