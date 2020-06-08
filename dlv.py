@@ -3,13 +3,13 @@ from cqapk_to_datalog.data_structures import DatalogProgram, Database, DatalogQu
 import time
 
 def execute_program(program: DatalogProgram, database: Database):
-    with open('.\experiences\dlv\code.txt', 'w') as the_file:
+    with open('dlv_files\code.txt', 'w') as the_file:
         the_file.write(str(database)+"\n")
         for rule in program.rules:
             the_file.write(str(rule)+"\n")
     
     start = time.time()
-    p = Popen('.\experiences\dlv\dlv.exe .\experiences\dlv\code.txt', shell=True, stdout=PIPE, stderr=PIPE)    
+    p = Popen('dlv_files\dlv.exe dlv_files\code.txt', shell=True, stdout=PIPE, stderr=PIPE)    
     stdout, stderr = p.communicate()
     end = time.time() - start
     if len(stderr) > 0:

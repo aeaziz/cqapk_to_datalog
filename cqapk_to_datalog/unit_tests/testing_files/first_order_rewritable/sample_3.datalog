@@ -1,7 +1,0 @@
-CERTAINTY(False) :- not CERTAINTY(True).
-CERTAINTY(True) :- R(X,Y,X), not R_1(X).
-R_1(X) :- R(X,Y,Z_0_1), not R_2(X,Y,Z_0_1).
-R_2(X,Y,Z_0_1) :- R(X,Y,Z_0_1), Z_0_1=X, R_3(X,Y).
-R_3(X,Y) :- R(X,Y,X), S(Y,Z,Z), not R_4(X,Y).
-R_4(X,Y) :- R(X,Y,X), S(Y,Z,Z_3_1), not R_5(X,Y,Z,Z_3_1).
-R_5(X,Y,Z,Z_3_1) :- R(X,Y,X), S(Y,Z,Z_3_1), Z_3_1=Z.

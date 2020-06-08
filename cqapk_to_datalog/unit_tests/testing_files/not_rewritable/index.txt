@@ -1,3 +1,0 @@
-File                    Query                                                       Description
-
-sample_1.json           q = R([X],Z),S([Y],Z)                                       A simple non rewritable query

@@ -8,7 +8,7 @@ import cqapk_to_datalog.algorithms as algorithms
 
 class ReadCQFileTests(unittest.TestCase):
     def setUp(self):
-        self.queries = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")
+        self.queries = parse_queries_from_file("unit_tests_files/queries.txt")
  
     def test_simple_case(self):
         x = structures.AtomValue("X", True)
@@ -38,7 +38,7 @@ class ReadCQFileTests(unittest.TestCase):
 
 class ReadDatalogFileTests(unittest.TestCase):
     def setUp(self):
-        self.program = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_1.dlog")
+        self.program = read_datalog_file("unit_tests_files/query_1.dlog")
 
     def test_read_is_ok(self):
         x = structures.AtomValue("X", True)
@@ -64,7 +64,7 @@ class ReadDatalogFileTests(unittest.TestCase):
 
 class TestAlgosSimpleQuery(unittest.TestCase):
     def setUp(self):
-        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[0]
+        self.q = parse_queries_from_file("unit_tests_files/queries.txt")[0]
         self.x = structures.AtomValue("X", True)
         self.y = structures.AtomValue("Y", True)
         self.z = structures.AtomValue("Z", True)
@@ -103,7 +103,7 @@ class TestAlgosSimpleQuery(unittest.TestCase):
 
 class TestAlgosReducibleQuery(unittest.TestCase):
     def setUp(self):
-        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[5]
+        self.q = parse_queries_from_file("unit_tests_files/queries.txt")[5]
         self.x = structures.AtomValue("X", True)
         self.y = structures.AtomValue("Y", True)
         self.r = structures.Atom("R",[self.x, self.y])
@@ -124,8 +124,8 @@ class TestAlgosReducibleQuery(unittest.TestCase):
 
 class TestAlgosSaturatedQuery(unittest.TestCase):
     def setUp(self):
-        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[7]
-        self.other = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[1]
+        self.q = parse_queries_from_file("unit_tests_files/queries.txt")[7]
+        self.other = parse_queries_from_file("unit_tests_files/queries.txt")[1]
         self.z = structures.AtomValue("Z", True)
         self.w = structures.AtomValue("W", True)
         self.fd = structures.FunctionalDependency([self.z],self.w)
@@ -147,8 +147,8 @@ class TestAlgosSaturatedQuery(unittest.TestCase):
 
 class SaturationTests(unittest.TestCase):
     def setUp(self):
-        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[7]
-        self.datalog = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_8.dlog")
+        self.q = parse_queries_from_file("unit_tests_files/queries.txt")[7]
+        self.datalog = read_datalog_file("unit_tests_files/query_8.dlog")
  
     def test_is_well_saturated(self):
         bad_fd_set = algorithms.find_bad_internal_fd(self.q)
@@ -159,12 +159,12 @@ class SaturationTests(unittest.TestCase):
 
 class FOTests(unittest.TestCase):
     def setUp(self):
-        self.queries = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[:5]
+        self.queries = parse_queries_from_file("unit_tests_files/queries.txt")[:5]
 
     def query_compare(self, i):
         q = self.queries[i]
         program = rewrite(q)
-        true_program = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_"+str(i+1)+".dlog")
+        true_program = read_datalog_file("unit_tests_files/query_"+str(i+1)+".dlog")
         self.assertTrue(program == true_program)
 
     def test_simple_rewrite(self):
@@ -184,14 +184,14 @@ class FOTests(unittest.TestCase):
 
 class CycleReduceTests(unittest.TestCase):
     def setUp(self):
-        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[5]
+        self.q = parse_queries_from_file("unit_tests_files/queries.txt")[5]
 
     def test_simple_rewrite(self):
         p = rewrite(self.q)
-        p1 = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_6_1.dlog")
-        p2 = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_6_2.dlog")
-        p3 = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_6_3.dlog")
-        p4 = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_6_4.dlog")
+        p1 = read_datalog_file("unit_tests_files/query_6_1.dlog")
+        p2 = read_datalog_file("unit_tests_files/query_6_2.dlog")
+        p3 = read_datalog_file("unit_tests_files/query_6_3.dlog")
+        p4 = read_datalog_file("unit_tests_files/query_6_4.dlog")
         self.assertTrue(p==p1 or p==p2 or p==p3 or p==p4)
 
  

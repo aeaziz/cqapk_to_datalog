@@ -1,8 +1,0 @@
-File                    Query                                                       Description
-
-sample_1.json           q = R([X],Y),S([Y],Z)                                       A simple FO rewritable query
-sample_2.json           q = R([a,X],Y), S([Y],Z, b)                                 A FO rewritable query containing constant values
-sample_3.json           q = R([X],Y,X), S([Y],Z, Z)                                 A FO rewritable query containing repeated values
-sample_4.json                                                                       A FO rewritable and non saturated query
-sample_5.json           q(X,) = R([X],Y),S([Y],X)                                   A FO rewritable query with free variables
-sample_6.json           q = *R([X],Y),S([Y],X)                                      A FO rewritable query containing consistent atoms

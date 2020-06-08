@@ -1,8 +1,0 @@
-File                    Query                                                       Description
-
-sample_1.json           q = R([X],Y),S([Y],X)                                       A simple reducible query
-sample_2.json           q = R([a,X],Y), S([Y],X, b)                                 A reducible query containing constant values
-sample_3.json           q = R([X],Y,X), S([Y],X, X)                                 A reducible query containing repeated values
-sample_4.json                                                                       A reducible and non saturated query
-sample_5.json           q(X,Y) = R([X],Y),S([Y],X)                                  A reducible query with free variables
-sample_6.json           q = R([X],Y),S([Y],X), *T([X],Z)                            A reducible query containing consistent atoms
