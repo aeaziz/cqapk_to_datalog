@@ -1,0 +1,16 @@
+# A simple FO rewritable query
+[]:R([X],Y),S([Y],Z)
+
+# A FO rewritable query containing constant values
+[]:R([a,X],Y),S([Y],Z, b)
+
+# A FO rewritable query containing repeated values
+[]:R([X],Y,X),S([Y],Z,Z) 
+
+# A FO rewritable and non saturated query
+
+# A FO rewritable query with free variables
+[X]:R([X],Y),S([Y],X)  
+
+# A FO rewritable query containing consistent atoms
+[]:R*([X],Y),S([Y],X)  

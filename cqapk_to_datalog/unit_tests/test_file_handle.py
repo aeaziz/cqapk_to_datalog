@@ -1,58 +1,43 @@
-from cqapk_to_datalog.data_structures import AtomValue, Atom, DatalogProgram, CompareAtom, DatalogQuery, ConjunctiveQuery, \
-    FunctionalDependency, FunctionalDependencySet
-from cqapk_to_datalog.file_handle import read_datalog_file, read_cq_file
+import unittest
+from cqapk_to_datalog.rewriting import rewrite
+import cqapk_to_datalog.data_structures as structures
+from cqapk_to_datalog.parsers.cq_parser import parse_queries_from_file
+from cqapk_to_datalog.parsers.datalog_parser import read_datalog_file
+ 
+class ReadCQFileTests(unittest.TestCase):
+    def setUp(self):
+        self.queries = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")
+ 
+    def test_simple_case(self):
+        x = structures.AtomValue("X", True)
+        y = structures.AtomValue("Y", True)
+        z = structures.AtomValue("Z", True)
+        r = structures.Atom("R", [x, y])
+        s = structures.Atom("S", [y, z])
+        fd_set_r = structures.FunctionalDependencySet()
+        fd_set_s = structures.FunctionalDependencySet()
+        fd_set_r.add(structures.FunctionalDependency([x], y))
+        fd_set_s.add(structures.FunctionalDependency([y], z))
+        q = structures.ConjunctiveQuery()
+        q = q.add_atom(r, fd_set_r, [True, False], False)
+        q = q.add_atom(s, fd_set_s, [True, False], False)
+        self.assertTrue(q == self.queries[0])
 
+    def test_constant(self):
+        q = self.queries[1]
+        r = q.get_atom_by_name("R")
+        a = r.content[0]
+        self.assertTrue(not a.var)
 
-def test_read_datalog():
-    x = AtomValue("X", True)
-    y = AtomValue("Y", True)
-    z = AtomValue("Z", True)
-    true = AtomValue("True", False)
-    false = AtomValue("False", False)
+    def test_free_vars(self):
+        q = self.queries[3]
+        x = structures.AtomValue("X", True)
+        self.assertTrue(q.free_vars == [x])
 
-    r_atom = Atom("R", [x, y])
-    s_atom = Atom("S", [y, z])
+class ReadDatalogFileTests(unittest.TestCase):
+    def setUp(self):
+        pass
 
-    q1 = DatalogQuery(Atom("CERTAINTY", [false]))
-    q2_head = Atom("CERTAINTY", [true])
-    q1.add_atom(q2_head, True)
-
-    q2 = DatalogQuery(q2_head)
-    q2.add_atom(r_atom)
-    q3_head = Atom("R_1", [x])
-    q2.add_atom(q3_head, True)
-
-    q3 = DatalogQuery(q3_head)
-    q3.add_atom(r_atom)
-    q4_head = Atom("R_2", [x,y])
-    q3.add_atom(q4_head, True)
-
-    q4 = DatalogQuery(q4_head)
-    q4.add_atom(r_atom)
-    q4.add_atom(s_atom)
-
-    program = DatalogProgram([q1, q2, q3, q4])
-    read_program = read_datalog_file("testing_files/first_order_rewritable/sample_1.datalog")
-    assert program == read_program
-
-
-def test_read_cq():
-    x = AtomValue("X", True)
-    y = AtomValue("Y", True)
-    z = AtomValue("Z", True)
-    a = AtomValue("a", False)
-    b = AtomValue("b", False)
-    r = Atom("R", [a, x, y])
-    s = Atom("S", [y, z, b])
-    fd0 = FunctionalDependencySet()
-    fd0.add(FunctionalDependency(frozenset([x]), y))
-    fd1 = FunctionalDependencySet()
-    fd1.add( FunctionalDependency(frozenset([y]), z))
-    q = ConjunctiveQuery({
-        r: (fd0, [True, True, False], False),
-        s: (fd1, [True, False, False], False)
-    }, [])
-    q_read, values = read_cq_file("testing_files/first_order_rewritable/sample_2.json")
-    assert q_read == q
-
-
+ 
+if __name__ == '__main__':
+    unittest.main()

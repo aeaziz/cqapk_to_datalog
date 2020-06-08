@@ -1,3 +1,0 @@
-CERTAINTY :- not R_1(X), R(X,Y).
-R_1(X) :- not R_2(X,Y), R(X,Y).
-R_2(X,Y) :- S(Y,Z), R(X,Y).

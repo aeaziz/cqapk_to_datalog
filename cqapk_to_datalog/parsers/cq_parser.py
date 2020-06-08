@@ -13,7 +13,7 @@ def parse_atoms(string) -> List[Tuple[Atom, FunctionalDependencySet, List[bool],
     """
     if string == "":
         return []
-    pattern = re.compile("[A-Za-z_0-9]+\(.+\)(,[A-Za-z_0-9]+\(.+\))*$")
+    pattern = re.compile("[A-Za-z_0-9]+\*?\(.+\)(,[A-Za-z_0-9]+\(.+\))*$")
     if pattern.match(string):
         try:
             atoms_strings = string.split("),")
@@ -92,7 +92,7 @@ def parse_atom_value(string) -> AtomValue:
 
 
 def parse_query(string):
-    pattern = re.compile("\[[A-Za-z_,0-9]*\]:[A-Za-z_,\(\)\[\]0-9]*$")
+    pattern = re.compile("\[[A-Za-z_,0-9]*\]:[A-Za-z_,\(\)\[\]\*0-9]*$")
     if pattern.match(string):
         try:
             free_var_body, query_body = string.split(":")
@@ -120,6 +120,9 @@ def parse_queries_from_file(file_name) -> List[ConjunctiveQuery]:
     file = open(file_name, 'r')
     queries = []
     for query in file.readlines():
-        q = parse_query(clean_line(query))
-        queries.append(q)
+        clean = clean_line(query)
+        if len(clean) > 0 and clean[0] != "#":            
+            q = parse_query(clean)
+            queries.append(q)
+    file.close()
     return queries
