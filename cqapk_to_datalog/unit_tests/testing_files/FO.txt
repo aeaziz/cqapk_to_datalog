@@ -7,10 +7,17 @@
 # A FO rewritable query containing repeated values
 []:R([X],Y,X),S([Y],Z,Z) 
 
-# A FO rewritable and non saturated query
-
 # A FO rewritable query with free variables
 [X]:R([X],Y),S([Y],X)  
 
 # A FO rewritable query containing consistent atoms
 []:R*([X],Y),S([Y],X)  
+
+# A reductible query in L
+[]:R([X],Y),S([Y],X)
+
+# A co-NP Complete query
+[]:R([X],Z),S([Y],Z)
+
+# A non-saturated query
+[]:R([X],Y),S([Y],Z),U([Y,Z,W],X),T_1([Z],W),T_2([Z],W)

@@ -1,0 +1,68 @@
+N_0(Z,W) :- T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X), not BadFact_0(Z,W).
+BadFact_0(Z,W) :- Z=Z_0, T_2(Z_0,W_0), R(X_0,Y_0), W!=W_0, U(Y_0,Z_0,W_0,X_0), T_2(Z,W), T_1(Z_0,W_0), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X), S(Y_0,Z_0).
+Eq_R(X,X) :- R(X,Y).
+Eq_S(Y,Y) :- S(Y,Z).
+Eq_U(Y,Z,W,Y,Z,W) :- U(Y,Z,W,X).
+Neq_R(X,X_0) :- R(X,Y), R(X_0,Y_0), not Eq_R(X,X_0).
+Neq_S(Y,Y_0) :- not Eq_S(Y,Y_0), S(Y,Z), S(Y_0,Z_0).
+Neq_U(Y,Z,W,Y_0,Z_0,W_0) :- not Eq_U(Y,Z,W,Y_0,Z_0,W_0), U(Y,Z,W,X), U(Y_0,Z_0,W_0,X_0).
+Rlvant_R(X,Y) :- N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Rlvant_S(Y,Z) :- N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Rlvant_U(Y,Z,W,X) :- N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Garbage_R(X) :- R(X,Y), not Rlvant_R(X,Y).
+Garbage_S(Y) :- S(Y,Z), not Rlvant_S(Y,Z).
+Garbage_U(Y,Z,W) :- not Rlvant_U(Y,Z,W,X), U(Y,Z,W,X).
+Any1Emb_0(X_0,Y_0,Y_1,Z_1,Y_2,Z_2,W_2,X_2) :- Eq_U(Y_2,Z_2,W_2,Y_1,Z_1,W_1), R(X_1,Y_1), T_1(Z_2,W_2), N_0(Z_0,W_0), N_0(Z_1,W_1), T_1(Z_0,W_0), S(Y_0,Z_0), T_2(Z_2,W_2), R(X_2,Y_2), T_2(Z_1,W_1), S(Y_1,Z_1), U(Y_1,Z_1,W_1,X_1), T_1(Z_1,W_1), R(X_0,Y_0), U(Y_0,Z_0,W_0,X_0), T_2(Z_0,W_0), Eq_R(X_0,X_2), S(Y_2,Z_2), Eq_S(Y_1,Y_0), N_0(Z_2,W_2), U(Y_2,Z_2,W_2,X_2).
+Rel1Emb_0(X,Y,Y,Z,Y,Z,W,X) :- R(X,Y), S(Y,Z), U(Y,Z,W,X).
+Irr1Emb_0(X_0,Y_1,Y_2,Z_2,W_2) :- Any1Emb_0(X_0,Y_0,Y_1,Z_1,Y_2,Z_2,W_2,X_2), not Rel1Emb_0(X_0,Y_0,Y_1,Z_1,Y_2,Z_2,W_2,X_2).
+Garbage_R(X_0) :- Irr1Emb_0(X_0,Y_1,Y_2,Z_2,W_2).
+Garbage_S(Y_1) :- Irr1Emb_0(X_0,Y_1,Y_2,Z_2,W_2).
+Garbage_U(Y_2,Z_2,W_2) :- Irr1Emb_0(X_0,Y_1,Y_2,Z_2,W_2).
+Pk_0(X_0,Y_1,Y_2,Z_2,W_2,X_3) :- Eq_U(Y_2,Z_2,W_2,Y_1,Z_1,W_1), R(X_1,Y_1), T_1(Z_2,W_2), S(Y_3,Z_3), T_1(Z_3,W_3), N_0(Z_0,W_0), N_0(Z_1,W_1), T_1(Z_0,W_0), S(Y_0,Z_0), T_2(Z_2,W_2), R(X_2,Y_2), N_0(Z_3,W_3), T_2(Z_1,W_1), S(Y_1,Z_1), U(Y_1,Z_1,W_1,X_1), R(X_3,Y_3), Eq_R(X_3,X_2), T_1(Z_1,W_1), U(Y_3,Z_3,W_3,X_3), Neq_R(X_0,X_3), R(X_0,Y_0), U(Y_0,Z_0,W_0,X_0), T_2(Z_0,W_0), S(Y_2,Z_2), Eq_S(Y_1,Y_0), N_0(Z_2,W_2), T_2(Z_3,W_3), U(Y_2,Z_2,W_2,X_2).
+DCon_0(X_6,X_6,Y_1,Y_2,Z_2,W_2) :- U(Y_6,Z_6,W_6,X_6), Pk_0(X_0,Y_1,Y_2,Z_2,W_2,X_3), R(X_6,Y_6), S(Y_6,Z_6).
+DCon_0(X_0,X_6,Y_1,Y_2,Z_2,W_2) :- Pk_0(X_7,Y_4,Y_5,Z_5,W_5,X_6), Neq_U(Y_5,Z_5,W_5,Y_2,Z_2,W_2), Neq_S(Y_4,Y_1), DCon_0(X_0,X_7,Y_1,Y_2,Z_2,W_2).
+InLongDCycle_0(X_0,Y_1,Y_2,Z_2,W_2) :- Pk_0(X_0,Y_1,Y_2,Z_2,W_2,X_3), DCon_0(X_3,X_0,Y_1,Y_2,Z_2,W_2).
+Garbage_R(X) :- InLongDCycle_0(X,Y,Y,Z,W).
+Garbage_S(Y) :- InLongDCycle_0(X,Y,Y,Z,W).
+Garbage_U(Y,Z,W) :- InLongDCycle_0(X,Y,Y,Z,W).
+Garbage_R(X) :- Garbage_S(Y), N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Garbage_R(X) :- N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X), Garbage_U(Y,Z,W).
+Garbage_S(Y) :- N_0(Z,W), Garbage_R(X), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Garbage_S(Y) :- N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X), Garbage_U(Y,Z,W).
+Garbage_U(Y,Z,W) :- N_0(Z,W), Garbage_R(X), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Garbage_U(Y,Z,W) :- Garbage_S(Y), N_0(Z,W), T_2(Z,W), R(X,Y), S(Y,Z), T_1(Z,W), U(Y,Z,W,X).
+Keep_R(X,Y) :- R(X,Y), not Garbage_R(X).
+Keep_S(Y,Z) :- S(Y,Z), not Garbage_S(Y).
+Keep_U(Y,Z,W,X) :- U(Y,Z,W,X), not Garbage_U(Y,Z,W).
+Link_0(X,X_0) :- Keep_S(Y,Z), Keep_U(Y_0,Z_0,W_0,X_0), Keep_S(Y_0,Z_0), Keep_R(X,Y), Eq_R(X,X_0), Keep_R(X_0,Y_0), Keep_U(Y,Z,W,X).
+Link_0(X,X_0) :- Keep_S(Y,Z), Keep_U(Y_0,Z_0,W_0,X_0), Keep_S(Y_0,Z_0), Keep_R(X,Y), Eq_S(Y,Y_0), Keep_R(X_0,Y_0), Keep_U(Y,Z,W,X).
+Link_0(X,X_0) :- Eq_U(Y,Z,W,Y_0,Z_0,W_0), Keep_S(Y,Z), Keep_U(Y_0,Z_0,W_0,X_0), Keep_S(Y_0,Z_0), Keep_R(X,Y), Keep_R(X_0,Y_0), Keep_U(Y,Z,W,X).
+Trans_0(X,X_0) :- Link_0(X,X_0).
+Trans_0(X,X_0) :- Link_0(X_1,X_0), Trans_0(X,X_1).
+Lower_0(X,X_0) :- X_0>X_1, Trans_0(X,X_1), Trans_0(X,X_0).
+IdentifiedBy_0(X,X_0) :- Trans_0(X,X_0), not Lower_0(X,X_0).
+N_R(X,X_0) :- T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+N_S(Y,X_0) :- T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+N_U(Y,Z,W,X_0) :- T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+T_0(X_0,X,Y,Y,Z,Y,Z,W,X) :- Keep_R(X,Y), Keep_S(Y,Z), IdentifiedBy_0(X,X_0), Keep_U(Y,Z,W,X).
+CERTAINTY :- not BadBlock_0(X_0), T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+BadBlock_0(X_0) :- not GoodFact_0(X_0,X,Y,Z_0_2,Z,Z_0_4,Z_0_5,W,Z_0_7), T_0(X_0,X,Y,Z_0_2,Z,Z_0_4,Z_0_5,W,Z_0_7).
+GoodFact_0(X_0,X,Y,Z_0_2,Z,Z_0_4,Z_0_5,W,Z_0_7) :- RewriteAtom_1(X_0,X,Y,Z,W), Z_0_7=X, Z_0_2=Y, T_0(X_0,X,Y,Z_0_2,Z,Z_0_4,Z_0_5,W,Z_0_7), Z_0_5=Z, Z_0_4=Y.
+RewriteAtom_1(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), not BadBlock_1(X_0,X,Y,Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+BadBlock_1(X_0,X,Y,Z,W) :- not GoodFact_1(X_0,X,Y,Z,W,Z_1_0), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_U(Y,Z,W,Z_1_0).
+GoodFact_1(X_0,X,Y,Z,W,Z_1_0) :- Z_1_0=X_0, RewriteAtom_2(X_0,X,Y,Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_U(Y,Z,W,Z_1_0).
+RewriteAtom_2(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), not BadBlock_2(X_0,X,Y,Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+BadBlock_2(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,Z_2_0), not GoodFact_2(X_0,X,Y,Z,W,Z_2_0), T_0(X_0,X,Y,Y,Z,Y,Z,W,X).
+GoodFact_2(X_0,X,Y,Z,W,Z_2_0) :- N_U(Y,Z,W,X_0), N_0(Z,Z_2_0), Z_2_0=W, T_0(X_0,X,Y,Y,Z,Y,Z,W,X), RewriteAtom_3(X_0,X,Y,Z,W).
+RewriteAtom_3(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_R(X,X_0), not BadBlock_3(X_0,X,Y,Z,W).
+BadBlock_3(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_R(X,Z_3_0), not GoodFact_3(X_0,X,Y,Z,W,Z_3_0).
+GoodFact_3(X_0,X,Y,Z,W,Z_3_0) :- N_U(Y,Z,W,X_0), Z_3_0=X_0, N_0(Z,W), RewriteAtom_4(X_0,X,Y,Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_R(X,Z_3_0).
+RewriteAtom_4(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), not BadBlock_4(X_0,X,Y,Z,W), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_S(Y,X_0), N_R(X,X_0).
+BadBlock_4(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), not GoodFact_4(X_0,X,Y,Z,W,Z_4_0), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_R(X,X_0), N_S(Y,Z_4_0).
+GoodFact_4(X_0,X,Y,Z,W,Z_4_0) :- N_U(Y,Z,W,X_0), Z_4_0=X_0, N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), RewriteAtom_5(X_0,X,Y,Z,W), N_R(X,X_0), N_S(Y,Z_4_0).
+RewriteAtom_5(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), not BadBlock_5(X_0,X,Y,Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), T_2(Z,W), N_S(Y,X_0), N_R(X,X_0).
+BadBlock_5(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), N_S(Y,X_0), N_R(X,X_0), T_2(Z,Z_5_0), not GoodFact_5(X_0,X,Y,Z,W,Z_5_0).
+GoodFact_5(X_0,X,Y,Z,W,Z_5_0) :- N_U(Y,Z,W,X_0), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), Z_5_0=W, N_S(Y,X_0), N_R(X,X_0), T_2(Z,Z_5_0), RewriteAtom_6(X_0,X,Y,Z,W).
+RewriteAtom_6(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), not BadBlock_6(X_0,X,Y,Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), T_2(Z,W), T_1(Z,W), N_S(Y,X_0), N_R(X,X_0).
+BadBlock_6(X_0,X,Y,Z,W) :- N_U(Y,Z,W,X_0), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), T_1(Z,Z_6_0), T_2(Z,W), not GoodFact_6(X_0,X,Y,Z,W,Z_6_0), N_S(Y,X_0), N_R(X,X_0).
+GoodFact_6(X_0,X,Y,Z,W,Z_6_0) :- N_U(Y,Z,W,X_0), N_0(Z,W), T_0(X_0,X,Y,Y,Z,Y,Z,W,X), T_1(Z,Z_6_0), T_2(Z,W), Z_6_0=W, N_S(Y,X_0), N_R(X,X_0).

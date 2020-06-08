@@ -1,0 +1,41 @@
+Eq_R(X,X) :- R(X,Y).
+Eq_S(Y,Y) :- S(Y,X).
+Neq_R(X,X_0) :- not Eq_R(X,X_0), R(X,Y), R(X_0,Y_0).
+Neq_S(Y,Y_0) :- S(Y_0,X_0), S(Y,X), not Eq_S(Y,Y_0).
+Rlvant_R(X,Y) :- R(X,Y), S(Y,X).
+Rlvant_S(Y,X) :- R(X,Y), S(Y,X).
+Garbage_R(X) :- not Rlvant_R(X,Y), R(X,Y).
+Garbage_S(Y) :- S(Y,X), not Rlvant_S(Y,X).
+Any1Emb_0(X_0,Y_0,Y_1,X_1) :- R(X_1,Y_1), S(Y_0,X_0), Eq_S(Y_1,Y_0), R(X_0,Y_0), S(Y_1,X_1), Eq_R(X_0,X_1).
+Rel1Emb_0(X,Y,Y,X) :- R(X,Y), S(Y,X).
+Irr1Emb_0(X_0,Y_1) :- Any1Emb_0(X_0,Y_0,Y_1,X_1), not Rel1Emb_0(X_0,Y_0,Y_1,X_1).
+Garbage_R(X_0) :- Irr1Emb_0(X_0,Y_1).
+Garbage_S(Y_1) :- Irr1Emb_0(X_0,Y_1).
+Pk_0(X_0,Y_1,X_2) :- R(X_1,Y_1), Neq_R(X_0,X_2), S(Y_0,X_0), Eq_S(Y_1,Y_0), S(Y_2,X_2), R(X_0,Y_0), Eq_R(X_2,X_1), S(Y_1,X_1), R(X_2,Y_2).
+DCon_0(X_4,X_4,Y_1) :- Pk_0(X_0,Y_1,X_2), R(X_4,Y_4), S(Y_4,X_4).
+DCon_0(X_0,X_4,Y_1) :- Neq_S(Y_3,Y_1), DCon_0(X_0,X_5,Y_1), Pk_0(X_5,Y_3,X_4).
+InLongDCycle_0(X_0,Y_1) :- Pk_0(X_0,Y_1,X_2), DCon_0(X_2,X_0,Y_1).
+Garbage_R(X) :- InLongDCycle_0(X,Y).
+Garbage_S(Y) :- InLongDCycle_0(X,Y).
+Garbage_R(X) :- R(X,Y), S(Y,X), Garbage_S(Y).
+Garbage_S(Y) :- Garbage_R(X), R(X,Y), S(Y,X).
+Keep_R(X,Y) :- not Garbage_R(X), R(X,Y).
+Keep_S(Y,X) :- S(Y,X), not Garbage_S(Y).
+Link_0(X,X_0) :- Keep_S(Y_0,X_0), Keep_S(Y,X), Keep_R(X,Y), Eq_R(X,X_0), Keep_R(X_0,Y_0).
+Link_0(X,X_0) :- Keep_S(Y_0,X_0), Keep_S(Y,X), Eq_S(Y,Y_0), Keep_R(X,Y), Keep_R(X_0,Y_0).
+Trans_0(X,X_0) :- Link_0(X,X_0).
+Trans_0(X,X_0) :- Trans_0(X,X_1), Link_0(X_1,X_0).
+Lower_0(X,X_0) :- Trans_0(X,X_1), X_0>X_1, Trans_0(X,X_0).
+IdentifiedBy_0(X,X_0) :- not Lower_0(X,X_0), Trans_0(X,X_0).
+N_R(X,X_0) :- T_0(X_0,X,Y,Y,X).
+N_S(Y,X_0) :- T_0(X_0,X,Y,Y,X).
+T_0(X_0,X,Y,Y,X) :- Keep_S(Y,X), IdentifiedBy_0(X,X_0), Keep_R(X,Y).
+CERTAINTY :- not BadBlock_0(X_0), T_0(X_0,X,Y,Y,X).
+BadBlock_0(X_0) :- not GoodFact_0(X_0,X,Y,Z_0_2,Z_0_3), T_0(X_0,X,Y,Z_0_2,Z_0_3).
+GoodFact_0(X_0,X,Y,Z_0_2,Z_0_3) :- Z_0_3=X, Z_0_2=Y, T_0(X_0,X,Y,Z_0_2,Z_0_3), RewriteAtom_1(X_0,X,Y).
+RewriteAtom_1(X_0,X,Y) :- N_R(X,X_0), T_0(X_0,X,Y,Y,X), not BadBlock_1(X_0,X,Y).
+BadBlock_1(X_0,X,Y) :- N_R(X,Z_1_0), T_0(X_0,X,Y,Y,X), not GoodFact_1(X_0,X,Y,Z_1_0).
+GoodFact_1(X_0,X,Y,Z_1_0) :- Z_1_0=X_0, N_R(X,Z_1_0), T_0(X_0,X,Y,Y,X), RewriteAtom_2(X_0,X,Y).
+RewriteAtom_2(X_0,X,Y) :- not BadBlock_2(X_0,X,Y), N_R(X,X_0), T_0(X_0,X,Y,Y,X), N_S(Y,X_0).
+BadBlock_2(X_0,X,Y) :- N_S(Y,Z_2_0), N_R(X,X_0), T_0(X_0,X,Y,Y,X), not GoodFact_2(X_0,X,Y,Z_2_0).
+GoodFact_2(X_0,X,Y,Z_2_0) :- N_S(Y,Z_2_0), Z_2_0=X_0, N_R(X,X_0), T_0(X_0,X,Y,Y,X).

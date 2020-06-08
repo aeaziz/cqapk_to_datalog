@@ -31,9 +31,12 @@ def read_datalog_file(file: str) -> DatalogProgram:
                 queries.append(q)
                 line_index += 1
             else:
+                f.close()
                 raise MalformedQuery(line, "DatalogQuery")
     except MalformedQuery:
+        f.close()
         raise
+    f.close()
     return DatalogProgram(queries)
 
 

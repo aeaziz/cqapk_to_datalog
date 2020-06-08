@@ -44,29 +44,47 @@ class TestSimpleQuery(unittest.TestCase):
 
 class TestReducibleQuery(unittest.TestCase):
     def setUp(self):
-        pass
+        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[5]
+        self.x = structures.AtomValue("X", True)
+        self.y = structures.AtomValue("Y", True)
+        self.r = structures.Atom("R",[self.x, self.y])
+        self.s = structures.Atom("S", [self.y, self.x])
 
     def test_gen_attack_graph(self):
-        pass
+        a_graph = algorithms.gen_attack_graph(self.q)
+        self.assertTrue(len(a_graph.edges) == 2 and (self.r, self.s) in a_graph.edges and (self.s, self.r) in a_graph.edges)
 
     def test_all_cycles_weak(self):
-        pass
+        a_graph = algorithms.gen_attack_graph(self.q)
+        self.assertTrue(algorithms.all_cycles_weak(a_graph, self.q))
 
     def test_get_reductibel_sets(self):
-        pass
+        a_graph = algorithms.gen_attack_graph(self.q)
+        red = algorithms.get_reductible_sets(self.q, a_graph)
+        self.assertTrue(red == [[self.r, self.s]] or red == [[self.s, self.r]])
 
 class TestSaturatedQuery(unittest.TestCase):
     def setUp(self):
-        pass
+        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[7]
+        self.other = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[1]
+        self.z = structures.AtomValue("Z", True)
+        self.w = structures.AtomValue("W", True)
+        self.fd = structures.FunctionalDependency([self.z],self.w)
+        self.t1 = structures.Atom("T_1",[self.z,self.w])
+        self.t2 = structures.Atom("T_2",[self.z,self.w])
 
     def test_sequential_proof(self):
-        pass
+        sp1 = structures.SequentialProof(self.fd, [self.t1])
+        sp2 = structures.SequentialProof(self.fd, [self.t2])
+        sps = algorithms.sequential_proofs(self.fd, self.q)
+        self.assertTrue(sps == [sp1, sp2] or sps == [sp2, sp1])
 
     def test_is_internal(self):
-        pass
+        self.assertTrue(algorithms.fd_is_internal(self.fd, self.q))
 
     def test_is_saturated(self):
-        pass
+        self.assertTrue(len(algorithms.find_bad_internal_fd(self.q)) > 0)
+        self.assertTrue(len(algorithms.find_bad_internal_fd(self.other)) == 0)
 
 
  

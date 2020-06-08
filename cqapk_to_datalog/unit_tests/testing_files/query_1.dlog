@@ -1,0 +1,3 @@
+CERTAINTY :- R(X,Y), not BadBlock_0(X).
+BadBlock_0(X) :- R(X,Y), not RewriteAtom_1(X,Y).
+RewriteAtom_1(X,Y) :- R(X,Y), S(Y,Z).

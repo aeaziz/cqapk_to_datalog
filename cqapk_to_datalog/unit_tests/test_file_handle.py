@@ -36,7 +36,27 @@ class ReadCQFileTests(unittest.TestCase):
 
 class ReadDatalogFileTests(unittest.TestCase):
     def setUp(self):
-        pass
+        self.program = read_datalog_file("cqapk_to_datalog/unit_tests/testing_files/query_1.dlog")
+
+    def test_read_is_ok(self):
+        x = structures.AtomValue("X", True)
+        y = structures.AtomValue("Y", True)
+        z = structures.AtomValue("Z", True)
+        r = structures.Atom("R", [x,y])
+        s = structures.Atom("S", [y,z])
+        r_1 = structures.Atom("BadBlock_0", [x])
+        r_2 = structures.Atom("RewriteAtom_1", [x,y])
+        rule1 = structures.DatalogQuery(structures.Atom("CERTAINTY", []))
+        rule1.add_atom(r)
+        rule1.add_atom(r_1, True)
+        rule2 = structures.DatalogQuery(r_1)
+        rule2.add_atom(r)
+        rule2.add_atom(r_2, True)
+        rule3 = structures.DatalogQuery(r_2)
+        rule3.add_atom(r)
+        rule3.add_atom(s)
+        true_program = structures.DatalogProgram([rule1, rule2, rule3])
+        self.assertTrue(self.program == true_program)
 
  
 if __name__ == '__main__':
