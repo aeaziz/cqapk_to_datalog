@@ -42,5 +42,5 @@ The library can directly be imported in your code. The file 'coding_example.py' 
 # Experiments
 To launch the experiments, the executable of DLV is needed. Once downloaded, you just have to give it as input to the script 'experiments.py'
 
-*python3 experiments.py dlv_executable* (Experiments have only been tested on a Windows OS)
+*python3 experiments.py dlv_executable*
 
