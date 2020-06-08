@@ -173,7 +173,7 @@ def new_atoms_rules(cycle: List[structures.Atom], q: structures.ConjunctiveQuery
     rules += [templates.TransBaseQuery(cycle, q, rewriting_index, renamings[0])]
     rules += [templates.TransRecQuery(cycle, q, rewriting_index, renamings)]
     if len(x_0) > 1:
-        rules += [templates.LowerCompositeQuery(cycle, q, i, rewriting_index, renamings) for i in range(len(cycle))]
+        rules += [templates.LowerCompositeQuery(cycle, q, i, rewriting_index, renamings) for i in range(len(x_0))]
     else:
         rules += [templates.LowerSingleQuery(cycle, q, rewriting_index, renamings)]
     rules += [templates.IdentifiedByQuery(cycle, q, rewriting_index, renamings[0])]
