@@ -2,9 +2,10 @@ import experiments_utils
 from tqdm import tqdm
 import dlv
 import statistics
+import sys
 
 
-def generate_exp1_data(max_n_atoms, n_facts, tries):
+def generate_exp1_data(dlv_executable, max_n_atoms, n_facts, tries):
 	data = experiments_utils.get_data_template()
 	for n_atoms in tqdm(range(1, max_n_atoms + 1), "Queries", position = 0):
 		data["n_atoms"].append(n_atoms)
@@ -16,12 +17,12 @@ def generate_exp1_data(max_n_atoms, n_facts, tries):
 		yes_times = []
 		no_times = []
 		for _ in tqdm(range(tries), "Executions", position = 1, leave = False):
-			answer, end_time = dlv.execute_program(program, db_yes)
+			answer, end_time = dlv.execute_program(dlv_executable, program, db_yes)
 			if len(answer) == 0:
 				print("Bad answer : Yes (%s)" % (n_atoms))
 			yes_times.append(end_time)
 			
-			answer, end_time = dlv.execute_program(program, db_no)
+			answer, end_time = dlv.execute_program(dlv_executable, program, db_no)
 			if len(answer) > 0:
 				print("Bad answer : No (%s)" % (n_atoms))
 			no_times.append(end_time)
@@ -29,7 +30,7 @@ def generate_exp1_data(max_n_atoms, n_facts, tries):
 		experiments_utils.udpate_data(data, yes_times, no_times)
 	experiments_utils.save_data(data, "experiments_files/exp1.csv")
 
-def generate_exp2_data(max_n_atoms, n_facts, tries):
+def generate_exp2_data(dlv_executable, max_n_atoms, n_facts, tries):
 	data1 = experiments_utils.get_data_template()
 	data2 = experiments_utils.get_data_template()
 	for n_atoms in tqdm(range(1, max_n_atoms + 1), "Queries", position = 0):
@@ -45,24 +46,24 @@ def generate_exp2_data(max_n_atoms, n_facts, tries):
 		q_no_times = []
 		cqa_no_times = []
 		for _ in tqdm(range(tries), "Executions", position = 1, leave = False):
-			answer, end_time = dlv.execute_program(program, db_yes)
+			answer, end_time = dlv.execute_program(dlv_executable, program, db_yes)
 			if len(answer) == 0:
 				print("Bad answer : Yes (%s, %s)" % (n_atoms, "cqa"))
 			cqa_yes_times.append(end_time)
 
-			answer, end_time = dlv.execute_query(q, db_yes)
+			answer, end_time = dlv.execute_query(dlv_executable, q, db_yes)
 			if len(answer) == 0:
 				print("Bad answer : Yes (%s, %s)" % (n_atoms, "q"))
 				print(q)
 				print(db_yes)
 			q_yes_times.append(end_time)
 			
-			answer, end_time = dlv.execute_program(program, db_no)
+			answer, end_time = dlv.execute_program(dlv_executable, program, db_no)
 			if len(answer) > 0:
 				print("Bad answer : No (%s, %s)" % (n_atoms, "cqa"))
 			cqa_no_times.append(end_time)
 
-			answer, end_time = dlv.execute_query(q, db_no)
+			answer, end_time = dlv.execute_query(dlv_executable, q, db_no)
 			if len(answer) > 0:
 				print("Bad answer : No (%s, %s)" % (n_atoms, "q"))
 			q_no_times.append(end_time)
@@ -73,7 +74,7 @@ def generate_exp2_data(max_n_atoms, n_facts, tries):
 	experiments_utils.save_data(data1, "experiments_files/exp2_1.csv")
 	experiments_utils.save_data(data2, "experiments_files/exp2_2.csv")
 
-def generate_exp3_data(max_n, tries):
+def generate_exp3_data(dlv_executable, max_n, tries):
 	data1 = experiments_utils.get_data_template()
 	data2 = experiments_utils.get_data_template()
 	for n in tqdm(range(1, max_n+1), "Queries", position = 1, leave = False):
@@ -94,28 +95,28 @@ def generate_exp3_data(max_n, tries):
 		db_yes  = experiments_utils.merge_databases(q2_1.get_yes_database(5), q2_2.get_yes_database(5))
 		db_no = experiments_utils.merge_databases(q2_1.get_no_database(5), q2_2.get_no_database(5))
 		for _ in tqdm(range(tries),"Tries", position = 2, leave = False ):
-			answer, end_time = dlv.execute_program(program_1, db_yes)
+			answer, end_time = dlv.execute_program(dlv_executable, program_1, db_yes)
 			if len(answer) == 0:
 				print("Bad answer : Yes (%s , %s)" % (n, "q1"))
 			times_q1_yes.append(end_time)
-			answer, end_time1 = dlv.execute_program(program_2_1, db_yes)
+			answer, end_time1 = dlv.execute_program(dlv_executable, program_2_1, db_yes)
 			if len(answer) == 0:
 				print("Bad answer : Yes (%s , %s)" % (n, "q2_1"))
-			answer, end_time2 = dlv.execute_program(program_2_2, db_yes)
+			answer, end_time2 = dlv.execute_program(dlv_executable, program_2_2, db_yes)
 			if len(answer) == 0:
 				print("Bad answer : Yes (%s , %s)" % (n, "q2_2"))
 			times_q2_yes.append(end_time1 + end_time2)
 
-			answer, end_time = dlv.execute_program(program_1, db_no)
+			answer, end_time = dlv.execute_program(dlv_executable, program_1, db_no)
 			if len(answer) > 0:
 				print("Bad answer : No (%s , %s)" % (n, "q1"))
 				print(q1)
 				print(db_no)
 			times_q1_no.append(end_time)
-			answer, end_time1 = dlv.execute_program(program_2_1, db_no)
+			answer, end_time1 = dlv.execute_program(dlv_executable, program_2_1, db_no)
 			if len(answer) > 0:
 				print("Bad answer : No (%s , %s)" % (n, "q2_1"))
-			answer, end_time2 = dlv.execute_program(program_2_2, db_no)
+			answer, end_time2 = dlv.execute_program(dlv_executable, program_2_2, db_no)
 			if len(answer) > 0:
 				print("Bad answer : No (%s , %s)" % (n, "q2_2"))
 			times_q2_no.append(end_time1 + end_time2)
@@ -128,12 +129,12 @@ def generate_exp3_data(max_n, tries):
 
 
 
-def experiment1(generate_data):
+def experiment1(dlv_executable, generate_data):
 	"""
 	Comparing CERTAINTY(q) over yes and no database instances
 	"""
 	if generate_data:
-		generate_exp1_data(100, 1000, 10)
+		generate_exp1_data(dlv_executable, 100, 1000, 10)
 	experiments_utils.plot_single_data(
 		"experiments_files/exp1.csv", 
 		"Mean execution time over yes instance", 
@@ -143,12 +144,12 @@ def experiment1(generate_data):
 		"Execution time as function of the number of atoms"
 	)
 
-def experiment2(generate_data):
+def experiment2(dlv_executable, generate_data):
 	"""
 	Comparing q and CERTAINTY(q)
 	"""
 	if generate_data:
-		generate_exp2_data(100, 1000, 10)
+		generate_exp2_data(dlv_executable, 100, 1000, 10)
 	experiments_utils.plot_double_data(
 		"experiments_files/exp2_1.csv",
 		"experiments_files/exp2_2.csv",
@@ -160,12 +161,12 @@ def experiment2(generate_data):
 		"Comparing execution time between q  and CERTAINTY(q) (False database)"
 	)
 
-def experiment3(generate_data):
+def experiment3(dlv_executable, generate_data):
 	"""
 	Comparing CERTAINTY(q1+q2) against CERTAINTY(q1)+CERTAINTY(q2)
 	"""
 	if generate_data:
-		generate_exp3_data(100,10)
+		generate_exp3_data(dlv_executable, 100,10)
 	experiments_utils.plot_double_data(
 		"experiments_files/exp3_1.csv",
 		"experiments_files/exp3_2.csv",
@@ -177,6 +178,12 @@ def experiment3(generate_data):
 		"Comparing CERTAINTY(q1+q2) and CERTAINTY(q1)+CERTAINTY(q2) (False database)"
 	)
 
-experiment1(False)
-experiment2(False)
-experiment3(False)
+
+if __name__ == "__main__":
+	# execute only if run as a script
+	if len(sys.argv) < 2:
+		print("Please give a valid file as input")
+	dlv_executable = sys.argv[1]
+	experiment1(dlv_executable, True)
+	experiment2(dlv_executable, True)
+	experiment3(dlv_executable, True)
