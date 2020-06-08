@@ -1,7 +1,19 @@
-from cqapk_to_datalog.data_structures import AtomValue, Atom, DatalogQuery, ConjunctiveQuery, FunctionalDependency
-from cqapk_to_datalog.rewriting_algorithms.cycle_reduce import reduce_cycle
-from cqapk_to_datalog.rewriting_algorithms.fo_rewriting import rewrite_fo
-from cqapk_to_datalog.algorithms import gen_attack_graph
-import networkx as nx
+import unittest
+from cqapk_to_datalog.rewriting import rewrite
+from cqapk_to_datalog.parsers.cq_parser import parse_queries_from_file
+from cqapk_to_datalog.parsers.datalog_parser import read_datalog_file
+ 
+class CycleReduceTests(unittest.TestCase):
+    def setUp(self):
+        self.queries = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")
+ 
+    def test_1(self):
+        self.assertTrue(True)
+ 
+    def test_2(self):
+        self.assertTrue(True)
+ 
 
-# TODO
+ 
+if __name__ == '__main__':
+    unittest.main()

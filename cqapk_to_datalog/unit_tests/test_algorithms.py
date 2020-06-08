@@ -1,80 +1,74 @@
-import pytest
-from cqapk_to_datalog.file_handle import read_cq_file
-from cqapk_to_datalog.data_structures import AtomValue, FunctionalDependency, Atom, ConjunctiveQuery, SequentialProof
-from cqapk_to_datalog.algorithms import transitive_closure, atom_plus, gen_attack_graph, all_cycles_weak, \
-    atom_attacks_variables, \
-    gen_m_graph, sequential_proofs, fd_is_internal, find_bad_internal_fd
+import unittest
+from cqapk_to_datalog.parsers.cq_parser import parse_queries_from_file
+import cqapk_to_datalog.data_structures as structures
+import cqapk_to_datalog.algorithms as algorithms
+
+class TestSimpleQuery(unittest.TestCase):
+    def setUp(self):
+        self.q = parse_queries_from_file("cqapk_to_datalog/unit_tests/testing_files/FO.txt")[0]
+        self.x = structures.AtomValue("X", True)
+        self.y = structures.AtomValue("Y", True)
+        self.z = structures.AtomValue("Z", True)
+        self.r = structures.Atom("R",[self.x, self.y])
+        self.s = structures.Atom("S", [self.y, self.z])
+
+    def test_tansitive_closure(self):
+        self.assertTrue(algorithms.transitive_closure({self.x}, self.q.get_all_fd()) == {self.x, self.y, self.z})
+        self.assertTrue(algorithms.transitive_closure({self.y}, self.q.get_all_fd()) == {self.y, self.z})
+        self.assertTrue(algorithms.transitive_closure({self.z}, self.q.get_all_fd()) == {self.z})
+
+    def test_plus(self):
+        self.assertTrue(algorithms.atom_plus(self.r, self.q) == {self.x})
+        self.assertTrue(algorithms.atom_plus(self.s, self.q) == {self.y})
+
+    def test_attack_graph(self):
+        a_graph = algorithms.gen_attack_graph(self.q)
+        self.assertTrue(len(a_graph.edges) == 1 and (self.r, self.s) in a_graph.edges)
+
+    def test_m_graph(self):
+        m_graph = algorithms.gen_m_graph(self.q)
+        self.assertTrue(len(m_graph.edges) == 1 and (self.r,self.s) in m_graph.edges)
+
+    def test_weak_cycle(self):
+        a_graph = algorithms.gen_attack_graph(self.q)
+        self.assertTrue(algorithms.all_cycles_weak(a_graph, self.q))
+
+    def test_attack_variable(self):
+        self.assertTrue(algorithms.atom_attacks_variables(self.r, self.x, self.q) is False)
+        self.assertTrue(algorithms.atom_attacks_variables(self.r, self.y, self.q) is True)
+        self.assertTrue(algorithms.atom_attacks_variables(self.r, self.z, self.q) is True)
+        self.assertTrue(algorithms.atom_attacks_variables(self.s, self.x, self.q) is False)
+        self.assertTrue(algorithms.atom_attacks_variables(self.s, self.y, self.q) is False)
+        self.assertTrue(algorithms.atom_attacks_variables(self.s, self.z, self.q) is True)
 
 
-@pytest.fixture
-def load_sample_1():
-    q, values = read_cq_file("testing_files/first_order_rewritable/sample_1.json")
-    x = values[0]
-    y = values[1]
-    z = values[2]
-    return q, x, y, z
+class TestReducibleQuery(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_gen_attack_graph(self):
+        pass
+
+    def test_all_cycles_weak(self):
+        pass
+
+    def test_get_reductibel_sets(self):
+        pass
+
+class TestSaturatedQuery(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_sequential_proof(self):
+        pass
+
+    def test_is_internal(self):
+        pass
+
+    def test_is_saturated(self):
+        pass
 
 
-@pytest.fixture
-def load_sample_1_with_atoms(load_sample_1):
-    q, x, y, z = load_sample_1
-    r = Atom("R", [x, y])
-    s = Atom("S", [y, z])
-    return q, x, y, z, r, s
-
-
-def test_transitive_closure(load_sample_1):
-    q, x, y, z = load_sample_1
-    assert transitive_closure({x}, q.get_all_fd()) == {x, y, z}
-    assert transitive_closure({y}, q.get_all_fd()) == {y, z}
-    assert transitive_closure({z}, q.get_all_fd()) == {z}
-
-
-def test_plus(load_sample_1_with_atoms):
-    q, x, y, z, r, s = load_sample_1_with_atoms
-    assert atom_plus(r, q) == {x}
-    assert atom_plus(s, q) == {y}
-
-
-def test_a_graph(load_sample_1_with_atoms):
-    q, x, y, z, r, s = load_sample_1_with_atoms
-    a_graph = gen_attack_graph(q)
-    assert len(a_graph.edges) == 1 and (r, s) in a_graph.edges
-
-
-def test_m_graph(load_sample_1_with_atoms):
-    q, x, y, z, r, s = load_sample_1_with_atoms
-    m_graph = gen_m_graph(q)
-    assert len(m_graph.edges) == 1 and (r, s) in m_graph.edges
-
-
-def test_weak_cycle(load_sample_1):
-    q = load_sample_1[0]
-    a_graph = gen_attack_graph(q)
-    assert all_cycles_weak(a_graph, q) is True
-
-
-
-def test_attack_variable(load_sample_1_with_atoms):
-    q, x, y, z, r, s = load_sample_1_with_atoms
-    assert atom_attacks_variables(r, x, q) is False
-    assert atom_attacks_variables(r, y, q) is True
-    assert atom_attacks_variables(r, z, q) is True
-    assert atom_attacks_variables(s, x, q) is False
-    assert atom_attacks_variables(s, y, q) is False
-    assert atom_attacks_variables(s, z, q) is True
-
-
-def test_sequential_proof():
-    # TODO
-    pass
-
-
-def test_is_internal():
-    # TODO
-    pass
-
-
-def test_is_saturated():
-    # TODO
-    pass
+ 
+if __name__ == '__main__':
+    unittest.main()
